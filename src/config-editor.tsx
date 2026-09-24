@@ -7,6 +7,7 @@ import {
   type Platform,
 } from "./configuration";
 import { jsonDocument } from "./documents";
+import { KeybindEditor } from "./keybind-editor";
 
 function NumberField({
   label,
@@ -65,24 +66,38 @@ function NumberField({
 export function ConfigEditor({
   config,
   platform,
+  pendingShortcuts,
   onChange,
   onPlatform,
   onApplyJson,
   onPendingJson,
+  onPendingShortcuts,
   onError,
 }: {
   config: Configuration;
   platform: Platform;
+  pendingShortcuts: boolean;
   onChange: (value: Configuration) => void;
   onPlatform: (value: Platform) => void;
   onApplyJson: (text: string) => void;
   onPendingJson: (pending: boolean) => void;
+  onPendingShortcuts: (pending: boolean) => void;
   onError: (message: string) => void;
 }) {
-  const [json, setJson] = useState(jsonDocument(config));
+  const appliedJson = jsonDocument(config);
+  const [jsonDraft, setJsonDraft] = useState({
+    source: config,
+    text: appliedJson,
+  });
   const [shell, setShell] = useState(config.windowsShell ?? "");
-  const pendingJson = json !== jsonDocument(config);
-  useEffect(() => setJson(jsonDocument(config)), [config]);
+  // Applied updates must not briefly look like pending JSON and disable the
+  // focused form input while the synchronization effect catches up.
+  const json = jsonDraft.source === config ? jsonDraft.text : appliedJson;
+  const pendingJson = json !== appliedJson;
+  useEffect(
+    () => setJsonDraft({ source: config, text: appliedJson }),
+    [config, appliedJson],
+  );
   useEffect(() => onPendingJson(pendingJson), [pendingJson, onPendingJson]);
   useEffect(() => setShell(config.windowsShell ?? ""), [config.windowsShell]);
   const font = (value: NonNullable<Configuration["font"]>) =>
@@ -105,155 +120,174 @@ export function ConfigEditor({
           <option value="win32">Windows</option>
         </select>
       </label>
-      <label className="field">
-        Installed font family
-        <input
-          placeholder="OMXTerm default"
-          maxLength={256}
-          value={config.font?.family ?? ""}
-          onChange={(e) => font({ family: e.target.value || undefined })}
-        />
-      </label>
-      <p className="hint">
-        The browser tries this local family, then monospace. No font files are
-        read. Availability and rendering can differ in OMXTerm.
-      </p>
-      <div className="field-pair">
-        <NumberField
-          label="Font size (px)"
-          value={config.font?.size ?? 16}
-          min={8}
-          max={72}
-          onChange={(size) => font({ size })}
+      {pendingJson && (
+        <p className="warning">
+          Apply or discard Configuration JSON before editing the configuration
+          controls.
+        </p>
+      )}
+      <fieldset
+        className="configuration-controls"
+        aria-label="Configuration controls"
+        disabled={pendingJson}
+      >
+        <KeybindEditor
+          config={config}
+          platform={platform}
+          onChange={onChange}
+          onPendingChange={onPendingShortcuts}
           onError={onError}
         />
-        <NumberField
-          label="Line height"
-          value={config.font?.lineHeight ?? 1}
-          min={1}
-          max={2}
-          step={0.05}
-          onChange={(lineHeight) => font({ lineHeight })}
-          onError={onError}
-        />
-      </div>
-      <label className="check-field">
-        <input
-          type="checkbox"
-          checked={config.font?.ligatures ?? true}
-          onChange={(e) => font({ ligatures: e.target.checked })}
-        />
-        Programming ligatures
-      </label>
-      <div className="section-heading">
-        <h2>Breathing room</h2>
-        <span>Padding · px</span>
-      </div>
-      <div className="padding-fields">
-        {PADDING_SIDES.map((side) => (
+        <label className="field">
+          Installed font family
+          <input
+            placeholder="OMXTerm default"
+            maxLength={256}
+            value={config.font?.family ?? ""}
+            onChange={(e) => font({ family: e.target.value || undefined })}
+          />
+        </label>
+        <p className="hint">
+          The browser tries this local family, then monospace. No font files are
+          read. Availability and rendering can differ in OMXTerm.
+        </p>
+        <div className="field-pair">
           <NumberField
-            key={side}
-            label={side[0].toUpperCase() + side.slice(1)}
-            value={config.terminal?.padding?.[side] ?? DEFAULT_PADDING[side]}
-            min={0}
-            max={128}
-            onChange={(value) =>
+            label="Font size (px)"
+            value={config.font?.size ?? 16}
+            min={8}
+            max={72}
+            onChange={(size) => font({ size })}
+            onError={onError}
+          />
+          <NumberField
+            label="Line height"
+            value={config.font?.lineHeight ?? 1}
+            min={1}
+            max={2}
+            step={0.05}
+            onChange={(lineHeight) => font({ lineHeight })}
+            onError={onError}
+          />
+        </div>
+        <label className="check-field">
+          <input
+            type="checkbox"
+            checked={config.font?.ligatures ?? true}
+            onChange={(e) => font({ ligatures: e.target.checked })}
+          />
+          Programming ligatures
+        </label>
+        <div className="section-heading">
+          <h2>Breathing room</h2>
+          <span>Padding · px</span>
+        </div>
+        <div className="padding-fields">
+          {PADDING_SIDES.map((side) => (
+            <NumberField
+              key={side}
+              label={side[0].toUpperCase() + side.slice(1)}
+              value={config.terminal?.padding?.[side] ?? DEFAULT_PADDING[side]}
+              min={0}
+              max={128}
+              onChange={(value) =>
+                onChange({
+                  ...config,
+                  terminal: {
+                    padding: { ...config.terminal?.padding, [side]: value },
+                  },
+                })
+              }
+              onError={onError}
+            />
+          ))}
+        </div>
+        <div className="section-heading">
+          <h2>Beyond appearance</h2>
+          <span>Export only</span>
+        </div>
+        <NumberField
+          label="Scrollback lines"
+          value={config.scrollback?.lines ?? 10000}
+          min={0}
+          max={100000}
+          onChange={(lines) => onChange({ ...config, scrollback: { lines } })}
+          onError={onError}
+        />
+        <label className="field">
+          Option key as Alt
+          <select
+            value={config.keyboard?.optionAsAlt ?? "none"}
+            onChange={(e) =>
               onChange({
                 ...config,
-                terminal: {
-                  padding: { ...config.terminal?.padding, [side]: value },
+                keyboard: {
+                  optionAsAlt: e.target.value as
+                    "none" | "left" | "right" | "both",
                 },
               })
             }
-            onError={onError}
+          >
+            {["none", "left", "right", "both"].map((value) => (
+              <option key={value}>{value}</option>
+            ))}
+          </select>
+        </label>
+        <label className="field">
+          Log level
+          <select
+            value={config.logLevel ?? "info"}
+            onChange={(e) =>
+              onChange({
+                ...config,
+                logLevel: e.target.value as "info" | "debug" | "error",
+              })
+            }
+          >
+            {["error", "info", "debug"].map((value) => (
+              <option key={value}>{value}</option>
+            ))}
+          </select>
+        </label>
+        <label className="check-field">
+          <input
+            type="checkbox"
+            checked={config.confirmClose ?? true}
+            onChange={(e) =>
+              onChange({ ...config, confirmClose: e.target.checked })
+            }
           />
-        ))}
-      </div>
-      <div className="section-heading">
-        <h2>Beyond appearance</h2>
-        <span>Export only</span>
-      </div>
-      <NumberField
-        label="Scrollback lines"
-        value={config.scrollback?.lines ?? 10000}
-        min={0}
-        max={100000}
-        onChange={(lines) => onChange({ ...config, scrollback: { lines } })}
-        onError={onError}
-      />
-      <label className="field">
-        Option key as Alt
-        <select
-          value={config.keyboard?.optionAsAlt ?? "none"}
-          onChange={(e) =>
-            onChange({
-              ...config,
-              keyboard: {
-                optionAsAlt: e.target.value as
-                  "none" | "left" | "right" | "both",
-              },
-            })
-          }
-        >
-          {["none", "left", "right", "both"].map((value) => (
-            <option key={value}>{value}</option>
-          ))}
-        </select>
-      </label>
-      <label className="field">
-        Log level
-        <select
-          value={config.logLevel ?? "info"}
-          onChange={(e) =>
-            onChange({
-              ...config,
-              logLevel: e.target.value as "info" | "debug" | "error",
-            })
-          }
-        >
-          {["error", "info", "debug"].map((value) => (
-            <option key={value}>{value}</option>
-          ))}
-        </select>
-      </label>
-      <label className="check-field">
-        <input
-          type="checkbox"
-          checked={config.confirmClose ?? true}
-          onChange={(e) =>
-            onChange({ ...config, confirmClose: e.target.checked })
-          }
-        />
-        Confirm closing busy sessions
-      </label>
-      <label className="check-field">
-        <input
-          type="checkbox"
-          checked={config.window?.alwaysOnTop ?? false}
-          onChange={(e) =>
-            onChange({ ...config, window: { alwaysOnTop: e.target.checked } })
-          }
-        />
-        New windows always on top
-      </label>
-      <label className="field">
-        Windows shell path
-        <input
-          placeholder="Use the application default"
-          value={shell}
-          onChange={(e) => setShell(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.currentTarget.blur();
-          }}
-          onBlur={() =>
-            onChange({ ...config, windowsShell: shell || undefined })
-          }
-        />
-      </label>
-      <p className="hint">
-        Native behavior is not simulated. The browser cannot validate installed
-        fonts, files, or shell executables.
-      </p>
+          Confirm closing busy sessions
+        </label>
+        <label className="check-field">
+          <input
+            type="checkbox"
+            checked={config.window?.alwaysOnTop ?? false}
+            onChange={(e) =>
+              onChange({ ...config, window: { alwaysOnTop: e.target.checked } })
+            }
+          />
+          New windows always on top
+        </label>
+        <label className="field">
+          Windows shell path
+          <input
+            placeholder="Use the application default"
+            value={shell}
+            onChange={(e) => setShell(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+            }}
+            onBlur={() =>
+              onChange({ ...config, windowsShell: shell || undefined })
+            }
+          />
+        </label>
+        <p className="hint">
+          Native behavior is not simulated. The browser cannot validate
+          installed fonts, files, or shell executables.
+        </p>
+      </fieldset>
       <details className="json-editor">
         <summary>Configuration JSON & keybindings</summary>
         <p className="hint">
@@ -262,17 +296,39 @@ export function ConfigEditor({
           stays in this tab only; apply it to include it in downloads and saved
           drafts.
         </p>
+        {pendingShortcuts && (
+          <p className="warning">
+            Apply or discard shortcut edits before editing Configuration JSON.
+          </p>
+        )}
         <textarea
           aria-label="Configuration JSON"
+          disabled={pendingShortcuts}
           spellCheck={false}
           value={json}
-          onChange={(e) => setJson(e.target.value)}
+          onChange={(e) =>
+            setJsonDraft({ source: config, text: e.target.value })
+          }
           maxLength={262144}
         />
-        <button className="secondary-button" onClick={() => onApplyJson(json)}>
-          Apply JSON
-        </button>
+        <div className="json-actions">
+          <button
+            className="secondary-button"
+            disabled={pendingShortcuts}
+            onClick={() => onApplyJson(json)}
+          >
+            Apply JSON
+          </button>
+          <button
+            className="secondary-button"
+            disabled={!pendingJson}
+            onClick={() => setJsonDraft({ source: config, text: appliedJson })}
+          >
+            Discard JSON edits
+          </button>
+        </div>
       </details>
+      {warnings.length > 0 && <p className="hint">Applied shortcut warnings</p>}
       {warnings.map((warning) => (
         <p className="warning" key={warning}>
           {warning}
