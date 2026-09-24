@@ -21,8 +21,10 @@ The non-modal editor floats on the left or right without resizing, dimming, or b
 - Local font family names use CSS with monospace fallback. There is no font enumeration, file access, or upload. The site cannot certify that a font or path exists, a shell is executable, or a native shortcut works. Platform-specific shortcut collisions are checked against the selected export platform.
 - Local JSON imports are bounded, decoded as strict UTF-8, and validated before replacing current state. Importing configuration never reads or fetches `theme.path`; the user imports the palette separately.
 - Theme undo/redo and reference comparison are available. Preset changes and imports are deliberate editing actions, not destructive resets of the only copy.
+- Switching editor sections preserves the selected color, incomplete theme text, and unapplied Configuration JSON and its disclosure state. Inactive controls are hidden from keyboard and assistive navigation. Switching sections does not apply pending JSON or invalid theme text.
+- Unapplied JSON is identified beside the export controls; downloads continue to use the last validated, applied configuration until explicit application succeeds. Invalid theme text blocks theme/pair downloads with a visible explanation, without blocking standalone configuration export.
 - Download a theme JSON, the configuration JSON, or a paired ZIP. The paired ZIP explicitly uses `config.json` and `themes/theme.json`, replacing `theme.path` only in the exported copy; standalone configuration retains its selected path.
-- No configuration data enters URLs, analytics, logs, or network requests. No imported content is executed. Draft persistence is opt-in and clearly labeled; unavailable/corrupt storage must not break editing.
+- No configuration data enters URLs, analytics, logs, or network requests. No imported content is executed. Draft persistence is opt-in and clearly labeled; unavailable/corrupt storage must not break editing. Only validated, applied documents are persisted. Unapplied JSON and invalid theme text remain in the current tab; a best-effort browser page-exit warning is requested for them even when persistence is enabled.
 
 ## Delivery
 

@@ -73,6 +73,7 @@ export function App() {
   const [snippets, setSnippets] = useState(false);
   const [remember, setRemember] = useState(initial.remember);
   const [themeValid, setThemeValid] = useState(true);
+  const [pendingConfigJson, setPendingConfigJson] = useState(false);
   const [message, setMessage] = useState(initial.error);
   const [error, setError] = useState(Boolean(initial.error));
   const [busy, setBusy] = useState(false);
@@ -102,14 +103,14 @@ export function App() {
   }, [theme, config, platform, remember]);
 
   useEffect(() => {
-    if (!dirty || remember) return;
+    if (themeValid && !pendingConfigJson && (!dirty || remember)) return;
     const warn = (event: BeforeUnloadEvent) => {
       event.preventDefault();
       event.returnValue = "";
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty, remember]);
+  }, [dirty, remember, pendingConfigJson, themeValid]);
 
   useEffect(() => {
     if (!open) return;
@@ -377,73 +378,73 @@ export function App() {
           onChange={setSection}
         />
         <div className="editor-scroll">
-          {section === "theme" ? (
-            <>
-              <div className="history-toolbar">
-                <button
-                  disabled={!history.past.length}
-                  title="Undo theme edit"
-                  aria-label="Undo theme edit"
-                  onClick={() => {
-                    setHistory(undoTheme);
-                    setComparing(false);
-                  }}
-                >
-                  <Icon name="undo" />
-                </button>
-                <button
-                  disabled={!history.future.length}
-                  title="Redo theme edit"
-                  aria-label="Redo theme edit"
-                  onClick={() => {
-                    setHistory(redoTheme);
-                    setComparing(false);
-                  }}
-                >
-                  <Icon name="redo" />
-                </button>
-                <button
-                  className="compare-button"
-                  aria-pressed={comparing}
-                  onClick={() => setComparing(!comparing)}
-                >
-                  <Icon name="compare" />
-                  {comparing ? "Viewing reference" : "Compare"}
-                </button>
-                <button
-                  className="reference-save"
-                  title="Use the edited theme as your comparison reference"
-                  onClick={() => {
-                    setReference(theme);
-                    setComparing(false);
-                    notice("Comparison reference updated.");
-                  }}
-                >
-                  Set reference
-                </button>
-              </div>
-              <ThemeEditor
-                theme={theme}
-                presets={presets}
-                reference={reference}
-                onChange={editTheme}
-                onPreset={(preset) => {
-                  editTheme(preset);
-                  setReference(preset);
+          <div hidden={section !== "theme"}>
+            <div className="history-toolbar">
+              <button
+                disabled={!history.past.length}
+                title="Undo theme edit"
+                aria-label="Undo theme edit"
+                onClick={() => {
+                  setHistory(undoTheme);
+                  setComparing(false);
                 }}
-                onValidity={setThemeValid}
-              />
-            </>
-          ) : (
+              >
+                <Icon name="undo" />
+              </button>
+              <button
+                disabled={!history.future.length}
+                title="Redo theme edit"
+                aria-label="Redo theme edit"
+                onClick={() => {
+                  setHistory(redoTheme);
+                  setComparing(false);
+                }}
+              >
+                <Icon name="redo" />
+              </button>
+              <button
+                className="compare-button"
+                aria-pressed={comparing}
+                onClick={() => setComparing(!comparing)}
+              >
+                <Icon name="compare" />
+                {comparing ? "Viewing reference" : "Compare"}
+              </button>
+              <button
+                className="reference-save"
+                title="Use the edited theme as your comparison reference"
+                onClick={() => {
+                  setReference(theme);
+                  setComparing(false);
+                  notice("Comparison reference updated.");
+                }}
+              >
+                Set reference
+              </button>
+            </div>
+            <ThemeEditor
+              theme={theme}
+              presets={presets}
+              reference={reference}
+              onChange={editTheme}
+              onPreset={(preset) => {
+                editTheme(preset);
+                setReference(preset);
+              }}
+              onValidity={setThemeValid}
+            />
+          </div>
+          <div hidden={section !== "configuration"}>
             <ConfigEditor
               config={config}
               platform={platform}
               onChange={(next) => applyConfig(jsonDocument(next))}
               onPlatform={changePlatform}
               onApplyJson={applyConfig}
+              onPendingJson={setPendingConfigJson}
               onError={fail}
             />
-          )}
+          </div>
           <section className="file-section">
             <div className="section-heading">
               <h2>Bring your own</h2>
@@ -522,6 +523,20 @@ export function App() {
           </details>
         </div>
         <div className="panel-export">
+          <div aria-live="polite">
+            {!themeValid && (
+              <p className="export-warning">
+                Complete the invalid name or hex value in Theme before exporting
+                a theme or pair.
+              </p>
+            )}
+            {pendingConfigJson && (
+              <p className="export-warning">
+                Unapplied configuration JSON. Downloads use the last applied
+                configuration.
+              </p>
+            )}
+          </div>
           <button
             className="primary-button"
             disabled={!themeValid || busy}
