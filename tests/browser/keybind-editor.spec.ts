@@ -248,6 +248,7 @@ test("retains pending shortcuts across sections and appearance edits, protecting
     .click();
   await expect(page.getByText(warning, { exact: true })).toHaveCount(0);
   await newTab.fill("Ctrl+Alt+U");
+  await expect(page.getByText(warning, { exact: true })).toBeVisible();
   const leaveAgain = page.waitForEvent("dialog");
   await page.close({ runBeforeUnload: true });
   await (await leaveAgain).accept();
