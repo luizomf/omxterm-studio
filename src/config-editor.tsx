@@ -68,6 +68,7 @@ export function ConfigEditor({
   onChange,
   onPlatform,
   onApplyJson,
+  onPendingJson,
   onError,
 }: {
   config: Configuration;
@@ -75,11 +76,14 @@ export function ConfigEditor({
   onChange: (value: Configuration) => void;
   onPlatform: (value: Platform) => void;
   onApplyJson: (text: string) => void;
+  onPendingJson: (pending: boolean) => void;
   onError: (message: string) => void;
 }) {
   const [json, setJson] = useState(jsonDocument(config));
   const [shell, setShell] = useState(config.windowsShell ?? "");
+  const pendingJson = json !== jsonDocument(config);
   useEffect(() => setJson(jsonDocument(config)), [config]);
+  useEffect(() => onPendingJson(pendingJson), [pendingJson, onPendingJson]);
   useEffect(() => setShell(config.windowsShell ?? ""), [config.windowsShell]);
   const font = (value: NonNullable<Configuration["font"]>) =>
     onChange({ ...config, font: { ...config.font, ...value } });
@@ -254,7 +258,9 @@ export function ConfigEditor({
         <summary>Configuration JSON & keybindings</summary>
         <p className="hint">
           Edit any supported v1 field. Apply validates the entire document for
-          the target platform. Imported paths are never opened.
+          the target platform. Imported paths are never opened. Unapplied text
+          stays in this tab only; apply it to include it in downloads and saved
+          drafts.
         </p>
         <textarea
           aria-label="Configuration JSON"

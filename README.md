@@ -23,6 +23,10 @@ Imports accept strict UTF-8 JSON up to **256 KiB**. Unknown fields and invalid v
 
 Choose the target platform before importing platform-specific keybindings. All supported optional v1 configuration fields are preserved; use **Configuration JSON & keybindings** for the full document. JSON edits take effect only after **Apply JSON** validates them. Host-specific properties still need verification in OMXTerm.
 
+Switching between Theme and Configuration keeps your selected color, incomplete theme text, and unapplied JSON in place. The export controls identify pending JSON: downloads still use the last applied configuration. Invalid theme text blocks theme/pair downloads, but configuration can still be downloaded independently.
+
+**Remember this draft** saves only validated, applied documents, not unfinished text. The browser is asked to warn before leaving with unapplied JSON or invalid theme input, even with draft storage enabled. That warning is best-effort, not a backup: apply and download your work before leaving.
+
 The paired download contains:
 
 ```text
