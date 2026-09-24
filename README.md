@@ -9,7 +9,7 @@ A static, browser-only theme and configuration workshop for [OMXTerm](https://gi
 ## The workshop
 
 - Edit the 21 theme colors and name, starting with the original **OMTheme** or **Dark Ice** palette.
-- See fictional terminal text, fastfetch, htop, tmux status, tabs, and snippets together. Preview controls can isolate a scene, show/hide chrome, or enter fullscreen.
+- See a fictional diff, all 16 ANSI slots (plain, bold, dim, and backgrounds), fastfetch, htop, tmux status, tabs, and snippets together. Preview controls can isolate a scene, show/hide chrome, or enter fullscreen.
 - Move the neutral editor left/right, or collapse it without resizing or dimming the preview. Use arrow keys in tab strips and Escape to collapse the editor.
 - Undo/redo theme edits, restore a selected color, or compare with a reference. Downloads always contain the edited theme, not the comparison reference.
 - Edit configuration independently. Installed font names use CSS with monospace fallback; no font upload, enumeration, or permission prompt.
