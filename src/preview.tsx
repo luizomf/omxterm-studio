@@ -30,11 +30,13 @@ export const BRIGHT_NAMES = [
 
 function C({
   color = "foreground",
+  background,
   bold = false,
   dim = false,
   children,
 }: {
   color?: TerminalThemeColorKey;
+  background?: TerminalThemeColorKey;
   bold?: boolean;
   dim?: boolean;
   children: ReactNode;
@@ -42,7 +44,10 @@ function C({
   return (
     <span
       className={`${bold ? "ansi-bold" : ""} ${dim ? "ansi-dim" : ""}`}
-      style={{ color: `var(--ansi-${color})` }}
+      style={{
+        color: `var(--ansi-${color})`,
+        backgroundColor: background ? `var(--ansi-${background})` : undefined,
+      }}
     >
       {children}
     </span>
@@ -68,69 +73,78 @@ function TextScene() {
   return (
     <section className="text-scene" aria-label="Text and ANSI samples">
       <Prompt command="cat welcome.md" />
-      <div className="terminal-copy">
+      <div className="terminal-copy" style={{ whiteSpace: "pre" }}>
         <C color="yellow" bold>
           # Make yourself at home.
         </C>
         <br />
+        <C color="brightBlack">diff --git a/prompt.ts b/prompt.ts</C>
         <br />
-        This is your terminal.
-        <br />A little quieter. A little brighter.
+        <C color="red">--- a/prompt.ts</C>
         <br />
-        <C bold>Exactly the way you like it.</C>
+        <C color="green">+++ b/prompt.ts</C>
         <br />
+        <C color="cyan">@@ -1,3 +1,3 @@</C>
         <br />
-        <C color="cyan">Colors should work together,</C>
+        <C>{" const prompt = {"}</C>
         <br />
-        not just look good in little squares.
+        <C color="red">
+          {"-  accent: "}
+          <C color="black" background="red">
+            {'"quiet"'}
+          </C>
+          {","}
+        </C>
         <br />
+        <C color="green">
+          {"+  accent: "}
+          <C color="black" background="green">
+            {'"vivid"'}
+          </C>
+          {","}
+        </C>
         <br />
-        <C color="green">+ a change worth keeping</C>
+        <C>{" };"}</C>
         <br />
-        <C color="red">- a line you can leave behind</C>
-        <br />
-        <C color="blue">→ src/</C> <C dim>components · themes · tests</C>
-        <br />
-        <br />
-        <C color="yellow">warning</C> <C dim>the coffee is getting cold</C>
-        <br />
+        <C color="yellow">WARN</C>
+        {" retry  "}
         <C color="red" bold>
-          error
-        </C>{" "}
-        <C>just a color sample, promise</C>
-        <br />
-        <C color="green">success</C> <C>all 24 checks passed</C>
-        <br />
+          ERROR
+        </C>
+        {" demo  "}
+        <C color="green">OK</C>
+        {" ready"}
         <br />
         <span className="selected-text"> a little selected text </span>{" "}
         <span className="cursor"> </span>
-        <br />
-        <br />
-        <C bold>Same color. Different emphasis.</C>
-        <br />
-        <C color="white">white</C>{" "}
-        <C color="white" bold>
-          white + bold
-        </C>{" "}
-        <C color="white" dim>
-          white + dim
-        </C>
-        <br />
-        <C color="brightBlack">bright black</C>{" "}
-        <C color="brightBlue">bright blue</C>
       </div>
       <div className="ansi-text-grid">
-        {ANSI_NAMES.slice(1).map((color) => (
-          <div key={color}>
-            <C color={color}>{color.padEnd(8)}</C>
+        <div>
+          <C dim>{"color         plain bold dim bg"}</C>
+        </div>
+        {[...ANSI_NAMES, ...BRIGHT_NAMES].map((color) => (
+          <div key={color} role="group" aria-label={`${color} ANSI samples`}>
+            <C>{color.padEnd(14)}</C>
+            <C color={color}>{"Aa    "}</C>
             <C color={color} bold>
-              bold{" "}
+              {"Aa   "}
             </C>
             <C color={color} dim>
-              dim
+              {"Aa  "}
             </C>
+            <span role="group" aria-label={`${color} background samples`}>
+              <C color="black" background={color}>
+                A
+              </C>
+              <C color="white" background={color}>
+                A
+              </C>
+            </span>
           </div>
         ))}
+        <div>
+          <C dim>bg: black / white text</C>
+        </div>
       </div>
       <Prompt />
     </section>
