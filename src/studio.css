@@ -151,18 +151,6 @@ a {
   font-size: 11px;
   color: #7e818f;
 }
-.pilot-badge {
-  align-self: flex-start;
-  margin-top: 1px;
-  font-size: 9px;
-  letter-spacing: 1.2px;
-  font-weight: 650;
-  color: #b8c5e8;
-  border: 1px solid #364157;
-  background: #172030;
-  border-radius: 4px;
-  padding: 3px 5px;
-}
 .preview-toolbar {
   display: flex;
   gap: 7px;
@@ -567,7 +555,7 @@ a {
   margin: 17px 0 6px;
 }
 .json-editor,
-.about-pilot {
+.about-preview {
   font-size: 11px;
   color: #a7aec1;
   border-top: 1px solid #353946;
@@ -575,7 +563,7 @@ a {
   margin-top: 17px;
 }
 .json-editor summary,
-.about-pilot summary {
+.about-preview summary {
   cursor: pointer;
   color: #c7ccda;
   line-height: 1.8;
@@ -588,7 +576,70 @@ a {
   tab-size: 2;
   margin: 8px 0 10px;
 }
-.about-pilot p {
+.configuration-controls {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.json-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.keybind-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 0;
+  background: #1b1c22;
+  border-bottom: 1px solid #353946;
+}
+.keybind-toolbar button {
+  flex: 1;
+}
+.keybind-toolbar .hint {
+  flex-basis: 100%;
+  margin: 0;
+}
+.keybind-rows {
+  display: grid;
+  gap: 14px;
+  margin: 14px 0;
+}
+.keybind-row label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  color: #d6d8e3;
+}
+.keybind-row label span {
+  color: #9fa7bb;
+  font-size: 10px;
+}
+.keybind-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 6px;
+}
+.keybind-row input {
+  font:
+    11px/1.4 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+}
+.keybind-row .field-error {
+  margin-bottom: 0;
+}
+.about-preview p {
   font-size: 10px;
   line-height: 1.6;
 }
@@ -753,9 +804,6 @@ a {
   .brand p {
     font-size: 9px;
   }
-  .pilot-badge {
-    display: none;
-  }
   .preview-toolbar {
     gap: 3px;
   }
@@ -807,6 +855,11 @@ a {
   }
   .footer-divider {
     margin: 0 4px;
+  }
+}
+@media (max-width: 360px) {
+  .brand-mark {
+    display: none;
   }
 }
 @media (prefers-reduced-motion: no-preference) {

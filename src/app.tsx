@@ -74,6 +74,7 @@ export function App() {
   const [remember, setRemember] = useState(initial.remember);
   const [themeValid, setThemeValid] = useState(true);
   const [pendingConfigJson, setPendingConfigJson] = useState(false);
+  const [pendingShortcuts, setPendingShortcuts] = useState(false);
   const [message, setMessage] = useState(initial.error);
   const [error, setError] = useState(Boolean(initial.error));
   const [busy, setBusy] = useState(false);
@@ -103,14 +104,20 @@ export function App() {
   }, [theme, config, platform, remember]);
 
   useEffect(() => {
-    if (themeValid && !pendingConfigJson && (!dirty || remember)) return;
+    if (
+      themeValid &&
+      !pendingConfigJson &&
+      !pendingShortcuts &&
+      (!dirty || remember)
+    )
+      return;
     const warn = (event: BeforeUnloadEvent) => {
       event.preventDefault();
       event.returnValue = "";
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty, remember, pendingConfigJson, themeValid]);
+  }, [dirty, remember, pendingConfigJson, pendingShortcuts, themeValid]);
 
   useEffect(() => {
     if (!open) return;
@@ -249,7 +256,6 @@ export function App() {
             </h1>
             <p>Your terminal. Your colors.</p>
           </div>
-          <span className="pilot-badge">PILOT</span>
         </div>
         <div className="preview-toolbar" aria-label="Preview controls">
           <button aria-pressed={tabs} onClick={() => setTabs(!tabs)}>
@@ -442,6 +448,8 @@ export function App() {
               onPlatform={changePlatform}
               onApplyJson={applyConfig}
               onPendingJson={setPendingConfigJson}
+              onPendingShortcuts={setPendingShortcuts}
+              pendingShortcuts={pendingShortcuts}
               onError={fail}
             />
           </div>
@@ -503,12 +511,13 @@ export function App() {
               No uploads, accounts, or analytics.
             </p>
           </section>
-          <details className="about-pilot">
+          <details className="about-preview">
             <summary>About this preview</summary>
             <p>
-              This pilot simulates the terminal with DOM/CSS, not Restty. Fonts,
-              dim text, cell spacing, ligatures, and native chrome may differ in
-              OMXTerm. Tabs and snippets use its theme color-mixing rules.
+              This preview simulates the terminal with DOM/CSS, not Restty.
+              Fonts, dim text, cell spacing, ligatures, and native chrome may
+              differ in OMXTerm. Tabs and snippets use its theme color-mixing
+              rules.
             </p>
             <p>
               Preview toggles are not configuration settings. Snippets and
@@ -528,6 +537,12 @@ export function App() {
               <p className="export-warning">
                 Complete the invalid name or hex value in Theme before exporting
                 a theme or pair.
+              </p>
+            )}
+            {pendingShortcuts && (
+              <p className="export-warning">
+                Unapplied shortcut edits. Downloads use the last applied
+                configuration.
               </p>
             )}
             {pendingConfigJson && (
