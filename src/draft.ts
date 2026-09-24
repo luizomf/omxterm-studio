@@ -22,7 +22,8 @@ export function decodeDraft(text: string): Draft {
   const draft = value as Record<string, unknown>;
   if (
     draft.version !== 1 ||
-    !["darwin", "linux", "win32"].includes(String(draft.platform))
+    typeof draft.platform !== "string" ||
+    !["darwin", "linux", "win32"].includes(draft.platform)
   )
     throw new Error("Unsupported saved draft.");
   const platform = draft.platform as Platform;

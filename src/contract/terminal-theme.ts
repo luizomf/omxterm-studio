@@ -1,4 +1,5 @@
-// Adapted from OMXTerm, MIT © 2026 Luiz Otávio Miranda. See THIRD_PARTY_NOTICES.md.
+// Adapted from OMXTerm, MIT © 2026 Luiz Otávio Miranda.
+// See docs/contract-provenance.md and LICENSE.
 import omthemeDocument from "../presets/omtheme.json";
 
 export const TERMINAL_THEME_VERSION = 1;
