@@ -211,6 +211,7 @@ test("font size and line height affect every terminal scene, while chrome retain
   await page.getByLabel("Line height", { exact: true }).press("Tab");
   for (const selector of [
     ".terminal-copy",
+    ".text-scene pre",
     ".fetch-facts",
     ".process-row",
     ".tmux-status",

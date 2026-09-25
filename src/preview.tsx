@@ -54,7 +54,7 @@ function C({
   );
 }
 
-function Prompt({ command }: { command?: string }) {
+function Prompt({ command }: { command?: ReactNode }) {
   return (
     <div className="prompt">
       <div>
@@ -74,17 +74,21 @@ function TextScene() {
     <section className="text-scene" aria-label="Text and ANSI samples">
       <Prompt command="cat welcome.md" />
       <div className="terminal-copy" style={{ whiteSpace: "pre" }}>
+        <br />
         <C color="yellow" bold>
           # Make yourself at home.
         </C>
         <br />
+        <br />
         <C color="brightBlack">diff --git a/prompt.ts b/prompt.ts</C>
+        <br />
         <br />
         <C color="red">--- a/prompt.ts</C>
         <br />
         <C color="green">+++ b/prompt.ts</C>
         <br />
         <C color="cyan">@@ -1,3 +1,3 @@</C>
+        <br />
         <br />
         <C>{" const prompt = {"}</C>
         <br />
@@ -106,7 +110,8 @@ function TextScene() {
         <br />
         <C>{" };"}</C>
         <br />
-        <C color="yellow">WARN</C>
+        <br />
+        <C color="yellow">This is a WARN</C>
         {" retry  "}
         <C color="red" bold>
           ERROR
@@ -115,37 +120,80 @@ function TextScene() {
         <C color="green">OK</C>
         {" ready"}
         <br />
+        <br />
         <span className="selected-text"> a little selected text </span>{" "}
         <span className="cursor"> </span>
       </div>
       <div className="ansi-text-grid">
         <div>
-          <C dim>{"color         plain bold dim bg"}</C>
+          <C dim>
+            {"color          plain          bold           dim           bg"}
+          </C>
         </div>
         {[...ANSI_NAMES, ...BRIGHT_NAMES].map((color) => (
           <div key={color} role="group" aria-label={`${color} ANSI samples`}>
             <C>{color.padEnd(14)}</C>
-            <C color={color}>{"Aa    "}</C>
+            <C color={color}>{` ${color.padEnd(13, " ")} `}</C>
             <C color={color} bold>
-              {"Aa   "}
+              {` ${color.padEnd(13, " ")} `}
             </C>
             <C color={color} dim>
-              {"Aa  "}
+              {` ${color.padEnd(13, " ")} `}
             </C>
             <span role="group" aria-label={`${color} background samples`}>
               <C color="black" background={color}>
-                A
-              </C>
+                {` ${color.padEnd(13, " ")} `}
+              </C>{" "}
               <C color="white" background={color}>
-                A
+                {` ${color.padEnd(13, " ")} `}
               </C>
             </span>
           </div>
         ))}
         <div>
+          <br />
           <C dim>bg: black / white text</C>
         </div>
       </div>
+      <Prompt command="ls" />
+      <div>
+        <pre style={{ font: "inherit" }}>
+          <C color={ANSI_NAMES[6]} bold>
+            {`Applications    `}
+          </C>
+          <C color={ANSI_NAMES[6]} bold>
+            {`Downloads    `}
+          </C>
+          <C color={ANSI_NAMES[6]} bold>
+            {`Movies          `}
+            <br />
+          </C>
+          <C color={BRIGHT_NAMES[1]} bold>
+            {`Link            `}
+          </C>
+          <C color={BRIGHT_NAMES[7]} bold>
+            {`file.txt    `}
+          </C>
+          <br />
+        </pre>
+      </div>
+      <Prompt
+        command={
+          <>
+            <C color={ANSI_NAMES[3]}>{`for `}</C>
+            <C color={ANSI_NAMES[7]}>{`i in {0..10}; `}</C>
+            <C color={ANSI_NAMES[3]}>{`do `}</C>
+            <C color={ANSI_NAMES[2]}>{`echo `}</C>
+            <C color={ANSI_NAMES[3]}>{`"`}</C>
+            <C color={ANSI_NAMES[6]}>{`$i`}</C>
+            <C color={ANSI_NAMES[3]}>{`"`}</C>
+            <C color={ANSI_NAMES[7]}>{`; `}</C>
+            <C color={ANSI_NAMES[3]}>{`done`}</C>
+          </>
+        }
+      />
+
+      <br />
       <Prompt />
     </section>
   );
@@ -153,14 +201,20 @@ function TextScene() {
 
 function FastfetchScene({ config }: { config: Configuration }) {
   const logo = [
-    "      ▄████▄      ",
-    "   ▄██▀    ▀██▄   ",
-    "  ██   ▄▄▄▄   ██  ",
-    " ██   ██  ██   ██ ",
-    " ██   ██  ██   ██ ",
-    "  ██   ▀▀▀▀   ██  ",
-    "   ▀██▄    ▄██▀   ",
-    "      ▀████▀      ",
+    "      ▄████████████▄        ",
+    "   ▄██▀            ▀██▄     ",
+    "  ██   ▄▄▄▄▄▄▄▄▄▄▄▄   ██    ",
+    "  █   ██          ██   █    ",
+    "  █   ██          ██   █    ",
+    "  █   ██          ██   █    ",
+    "  █   ██          ██   █    ",
+    "  █   ██          ██   █    ",
+    "  █   ██          ██   █    ",
+    "  █   ██          ██   █    ",
+    "  █   ██          ██   █    ",
+    "  ██   ▀▀▀▀▀▀▀▀▀▀▀▀   ██    ",
+    "   ▀██▄            ▄██▀     ",
+    "      ▀████████████▀        ",
   ];
   const values = [
     ["OS", "Studio Linux arm64"],
@@ -174,14 +228,20 @@ function FastfetchScene({ config }: { config: Configuration }) {
     ["Disk", "18 GiB / 256 GiB"],
   ];
   const logoColors = [
-    "green",
-    "green",
-    "yellow",
-    "red",
-    "brightRed",
-    "magenta",
     "blue",
     "brightBlue",
+    "red",
+    "brightRed",
+    "yellow",
+    "brightYellow",
+    "cyan",
+    "brightCyan",
+    "magenta",
+    "brightMagenta",
+    "green",
+    "brightGreen",
+    "blue",
+    "brightMagenta",
   ] as const;
   return (
     <section className="fastfetch-scene" aria-label="Simulated fastfetch">
@@ -249,7 +309,7 @@ function HtopScene() {
           <div key={i}>
             <C color="cyan">{i}</C>[
             <C color="green">{"┃".repeat(Math.ceil(value / 5))}</C>
-            <C color="brightBlack">{"┃".repeat(8 - Math.ceil(value / 5))}</C>
+            <C color="brightBlack">{"┃".repeat(25 - Math.ceil(value / 5))}</C>
             <C color={value ? "foreground" : "brightBlack"}>
               {String(value.toFixed(1)).padStart(5)}%
             </C>
@@ -259,11 +319,12 @@ function HtopScene() {
       </div>
       <div>
         <C color="cyan">Mem</C>[<C color="green">┃┃┃</C>
-        <C color="magenta">┃</C>
+        <C color="red">┃┃┃┃┃┃┃┃┃┃┃┃</C>
         <C color="brightBlack">┃┃┃┃┃┃┃┃</C> <C color="yellow">2.4G</C>/16G]
       </div>
       <div>
-        <C color="cyan">Swp</C>[<C color="brightBlack">┃┃┃┃┃┃┃┃┃┃┃┃</C>{" "}
+        <C color="cyan">Swp</C>[
+        <C color="brightBlack">┃┃┃┃┃┃┃┃┃┃┃┃┃┃┃┃┃┃┃┃┃┃┃</C>{" "}
         <C color="brightBlack">0K</C>/2.0G]
       </div>
       <div className="htop-info">

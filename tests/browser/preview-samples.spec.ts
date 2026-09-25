@@ -81,9 +81,11 @@ test("keeps the ANSI samples reachable on a narrow screen", async ({
   for (const name of slots) {
     const background = page
       .getByRole("group", { name: `${name} background samples`, exact: true })
-      .getByText("A", { exact: true })
+      .getByText(name, { exact: true })
       .last();
-    await background.scrollIntoViewIfNeeded();
+    await background.evaluate((element) =>
+      element.scrollIntoView({ block: "center", inline: "center" }),
+    );
     await expect(background).toBeInViewport({ ratio: 1 });
   }
   expect(
@@ -125,8 +127,10 @@ test("shows every ANSI slot as plain, bold, dim and background text without chan
       name: `${name} ANSI samples`,
       exact: true,
     });
-    await expect(row.getByText(name, { exact: true })).toBeVisible();
-    const samples = row.getByText("Aa", { exact: true });
+    await expect(row.locator(":scope > span").first()).toHaveText(name);
+    const samples = row.locator(
+      ":scope > span:nth-child(n + 2):nth-child(-n + 4)",
+    );
     await expect(samples).toHaveCount(3);
     const color = `rgb(${index + 1}, ${index + 1}, ${index + 1})`;
     for (const sample of await samples.all())
@@ -135,7 +139,7 @@ test("shows every ANSI slot as plain, bold, dim and background text without chan
     await expect(samples.nth(2)).toHaveCSS("opacity", "0.5");
     const backgrounds = row
       .getByRole("group", { name: `${name} background samples`, exact: true })
-      .getByText("A", { exact: true });
+      .getByText(name, { exact: true });
     await expect(backgrounds).toHaveCount(2);
     for (const sample of await backgrounds.all())
       await expect(sample).toHaveCSS("background-color", color);
