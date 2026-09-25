@@ -1,4 +1,6 @@
 const paths = {
+  plus: "M5 12h14M12 5v14",
+  minus: "M5 12h14",
   sliders: "M4 6h5m4 0h7M4 12h10m4 0h2M4 18h2m4 0h10M9 3v6m5 0v6M6 15v6",
   close: "m6 6 12 12M18 6 6 18",
   left: "M20 4H4v16h16zM10 4v16m6-12-3 4 3 4",

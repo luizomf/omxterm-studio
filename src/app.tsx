@@ -258,6 +258,20 @@ export function App() {
           </div>
         </div>
         <div className="preview-toolbar" aria-label="Preview controls">
+          <button
+            ref={reopen}
+            className={`editor-launcher ${open ? "launcher-hidden" : ""}`}
+            aria-label="Edit appearance"
+            title="Edit appearance"
+            aria-expanded={open}
+            aria-controls="editor-panel"
+            onClick={() => {
+              setOpen(true);
+              requestAnimationFrame(() => panelHeading.current?.focus());
+            }}
+          >
+            Edit
+          </button>
           <button aria-pressed={tabs} onClick={() => setTabs(!tabs)}>
             Tabs
           </button>
@@ -317,19 +331,6 @@ export function App() {
         </span>
         <span className="footer-right">OMXTerm config v1</span>
       </footer>
-      <button
-        ref={reopen}
-        className={`editor-launcher ${open ? "launcher-hidden" : ""}`}
-        aria-expanded={open}
-        aria-controls="editor-panel"
-        onClick={() => {
-          setOpen(true);
-          requestAnimationFrame(() => panelHeading.current?.focus());
-        }}
-      >
-        <Icon name="sliders" />
-        Edit appearance
-      </button>
       {comparing && (
         <button
           className="reference-banner"

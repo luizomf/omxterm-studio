@@ -8,6 +8,42 @@ test.beforeEach(async ({ page }) => {
     .click();
 });
 
+for (const width of [1440, 830, 390, 320]) {
+  test(`keeps column controls off terminal content at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 960 });
+    const controls = page.getByRole("group", { name: "Workspace columns" });
+    for (const snippets of [false, true]) {
+      if (snippets)
+        await page
+          .getByRole("button", { name: "Snippets", exact: true })
+          .click();
+      const bounds = (await controls.boundingBox())!;
+      const content = (await page.locator(".terminal-scroll").boundingBox())!;
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(content.y);
+      for (const button of await controls.getByRole("button").all()) {
+        await expect(button).toBeInViewport({ ratio: 1 });
+        const box = (await button.boundingBox())!;
+        const icon = (await button.locator("svg").boundingBox())!;
+        expect(
+          Math.abs(icon.y + icon.height / 2 - box.y - box.height / 2),
+        ).toBeLessThan(1);
+      }
+      const minimize = page.getByRole("button", {
+        name: "Minimize system demos column",
+      });
+      const before = await minimize.boundingBox();
+      await minimize.click();
+      const restore = page.getByRole("button", {
+        name: "Restore system demos column",
+      });
+      expect(await restore.boundingBox()).toEqual(before);
+      await restore.click();
+    }
+  });
+}
+
 test("minimizes either column, expands the other, and restores by keyboard", async ({
   page,
 }) => {
