@@ -699,21 +699,13 @@ a {
   text-align: left;
   margin: 0 0 8px;
 }
-.editor-launcher {
-  position: fixed;
-  bottom: 54px;
-  left: 38px;
-  z-index: 9;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 11px 15px;
+.preview-toolbar > button.editor-launcher {
   border: 1px solid #515866;
-  border-radius: 9px;
   background: #232631;
   color: #e3e9fa;
-  box-shadow: 0 4px 20px #0005;
-  font-size: 12px;
+}
+.preview-toolbar > button.editor-launcher:hover {
+  background: #32343e;
 }
 .launcher-hidden {
   visibility: hidden;
@@ -837,10 +829,6 @@ a {
   .panel-right {
     right: 16px;
   }
-  .editor-launcher {
-    left: 20px;
-    bottom: 46px;
-  }
   .notice {
     right: 16px;
     bottom: 46px;
@@ -858,8 +846,15 @@ a {
   }
 }
 @media (max-width: 360px) {
+  .studio-header {
+    padding: 0 10px;
+    gap: 4px;
+  }
   .brand-mark {
     display: none;
+  }
+  .preview-toolbar > button:not(.icon-button) {
+    padding-inline: 4px;
   }
 }
 @media (prefers-reduced-motion: no-preference) {

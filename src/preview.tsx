@@ -5,6 +5,7 @@ import type {
 } from "./contract/terminal-theme";
 import { resolvedAppearance, type Configuration } from "./configuration";
 import { TabStrip } from "./tab-strip";
+import { Icon } from "./icons";
 
 export type Scene = "workspace" | "fastfetch" | "htop";
 export const ANSI_NAMES = [
@@ -451,10 +452,38 @@ export function Preview({
           <i />
           <i />
         </span>
-        <span>
+        <span className="window-caption">
           {comparing ? "REFERENCE" : theme.name}{" "}
           <span className="titlebar-separator">/</span> appearance preview
         </span>
+        {scene === "workspace" && (
+          <div
+            className="workspace-column-controls"
+            role="group"
+            aria-label="Workspace columns"
+          >
+            {(
+              [
+                ["samples", "Color samples"],
+                ["system", "System demos"],
+              ] as const
+            ).map(([column, label]) => {
+              const hidden = hiddenColumn === column;
+              return (
+                <button
+                  key={column}
+                  aria-label={`${hidden ? "Restore" : "Minimize"} ${label.toLowerCase()} column`}
+                  title={`${hidden ? "Restore" : "Minimize"} ${label.toLowerCase()} column`}
+                  aria-expanded={!hidden}
+                  disabled={hiddenColumn !== null && !hidden}
+                  onClick={() => setHiddenColumn(hidden ? null : column)}
+                >
+                  <Icon name={hidden ? "plus" : "minus"} />
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
       {tabs && (
         <TabStrip
@@ -471,33 +500,6 @@ export function Preview({
       )}
       <div className="preview-body">
         <div className="terminal-column">
-          {scene === "workspace" && (
-            <div
-              className="workspace-column-controls"
-              role="group"
-              aria-label="Workspace columns"
-            >
-              {(
-                [
-                  ["samples", "Color samples"],
-                  ["system", "System demos"],
-                ] as const
-              ).map(([column, label]) => {
-                const hidden = hiddenColumn === column;
-                return (
-                  <button
-                    key={column}
-                    aria-label={`${hidden ? "Restore" : "Minimize"} ${label.toLowerCase()} column`}
-                    aria-expanded={!hidden}
-                    disabled={hiddenColumn !== null && !hidden}
-                    onClick={() => setHiddenColumn(hidden ? null : column)}
-                  >
-                    <span aria-hidden="true">{hidden ? "+" : "−"}</span> {label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
           <div className="terminal-scroll">
             <div
               className={`scene-layout scene-${scene}${scene === "workspace" && hiddenColumn ? ` workspace-without-${hiddenColumn}` : ""}`}

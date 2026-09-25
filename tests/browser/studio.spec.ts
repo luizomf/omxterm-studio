@@ -60,6 +60,35 @@ test("collapse, reopen, and moving the panel never resize or dim the preview", a
   ).toBeFocused();
 });
 
+for (const width of [1440, 830, 390, 320]) {
+  test(`keeps the editor launcher outside the preview at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 960 });
+    const preview = page.getByTestId("terminal-preview");
+    const originalBounds = await preview.boundingBox();
+    await page.getByRole("button", { name: "Collapse editor" }).click();
+    const launcher = page.getByRole("button", { name: "Edit appearance" });
+    await expect(launcher).toHaveText("Edit");
+    await expect(launcher).toHaveAttribute("title", "Edit appearance");
+    await expect(launcher).toBeInViewport({ ratio: 1 });
+    await expect(launcher).toBeFocused();
+    const button = (await launcher.boundingBox())!;
+    expect(button.y + button.height).toBeLessThanOrEqual(originalBounds!.y);
+    expect(await preview.boundingBox()).toEqual(originalBounds);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page.keyboard.press("Enter");
+    await expect(
+      page.getByRole("heading", { name: "Make it feel like you." }),
+    ).toBeFocused();
+    expect(await preview.boundingBox()).toEqual(originalBounds);
+  });
+}
+
 test("downloads a coherent pair and keeps the current edit when comparing", async ({
   page,
 }) => {
