@@ -415,6 +415,9 @@ export function Preview({
   comparing: boolean;
   onDemo: () => void;
 }) {
+  const [hiddenColumn, setHiddenColumn] = useState<"samples" | "system" | null>(
+    null,
+  );
   const appearance = resolvedAppearance(config);
   const variables = Object.fromEntries(
     Object.entries(theme.colors).map(([key, value]) => [
@@ -468,11 +471,48 @@ export function Preview({
       )}
       <div className="preview-body">
         <div className="terminal-column">
+          {scene === "workspace" && (
+            <div
+              className="workspace-column-controls"
+              role="group"
+              aria-label="Workspace columns"
+            >
+              {(
+                [
+                  ["samples", "Color samples"],
+                  ["system", "System demos"],
+                ] as const
+              ).map(([column, label]) => {
+                const hidden = hiddenColumn === column;
+                return (
+                  <button
+                    key={column}
+                    aria-label={`${hidden ? "Restore" : "Minimize"} ${label.toLowerCase()} column`}
+                    aria-expanded={!hidden}
+                    disabled={hiddenColumn !== null && !hidden}
+                    onClick={() => setHiddenColumn(hidden ? null : column)}
+                  >
+                    <span aria-hidden="true">{hidden ? "+" : "−"}</span> {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           <div className="terminal-scroll">
-            <div className={`scene-layout scene-${scene}`}>
-              {scene === "workspace" && <TextScene />}
-              {scene !== "htop" && <FastfetchScene config={config} />}
-              {scene !== "fastfetch" && <HtopScene />}
+            <div
+              className={`scene-layout scene-${scene}${scene === "workspace" && hiddenColumn ? ` workspace-without-${hiddenColumn}` : ""}`}
+            >
+              {scene === "workspace" && hiddenColumn !== "samples" && (
+                <TextScene />
+              )}
+              {scene !== "htop" &&
+                (scene !== "workspace" || hiddenColumn !== "system") && (
+                  <FastfetchScene config={config} />
+                )}
+              {scene !== "fastfetch" &&
+                (scene !== "workspace" || hiddenColumn !== "system") && (
+                  <HtopScene />
+                )}
             </div>
           </div>
           <div className="tmux-status">

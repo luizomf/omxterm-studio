@@ -110,6 +110,34 @@
   padding: var(--padding-top) var(--padding-right) var(--padding-bottom)
     var(--padding-left);
 }
+.workspace-column-controls {
+  display: flex;
+  gap: 8px;
+  flex: none;
+  padding: 4px 8px;
+  font:
+    12px/1.4 -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+.workspace-column-controls button {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  border: 1px solid #586174;
+  border-radius: 5px;
+  background: #202633;
+  color: #e9edf5;
+  font: inherit;
+}
+.workspace-column-controls button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.workspace-column-controls button:focus-visible {
+  outline: 2px solid #a9c7ff;
+  outline-offset: 1px;
+}
 .terminal-scroll {
   flex: 1;
   overflow: auto;
@@ -401,6 +429,18 @@
   .htop-scene {
     padding-left: 30px;
   }
+}
+.scene-workspace.workspace-without-samples,
+.scene-workspace.workspace-without-system {
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+.scene-workspace.workspace-without-system {
+  grid-template-rows: minmax(380px, 1fr);
+}
+.workspace-without-system .text-scene {
+  grid-row: auto;
+  border-right: none;
 }
 @media (max-width: 700px) {
   .window-titlebar {
