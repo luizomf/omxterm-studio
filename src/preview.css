@@ -198,6 +198,8 @@
   opacity: 0.5;
 }
 .ansi-text-grid {
+  width: max-content;
+  padding-right: 1ch;
   white-space: pre;
   margin: 22px 0;
 }
