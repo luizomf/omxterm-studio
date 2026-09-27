@@ -345,7 +345,7 @@ test("shows platform defaults and applies shortcut swaps only as a complete batc
     exact: true,
   });
   await expect(page.getByRole("textbox", { name: / shortcut$/ })).toHaveCount(
-    26,
+    27,
   );
   await expect(newTab).toHaveValue("CommandOrControl+T");
   await page.getByLabel("Target platform").selectOption("linux");

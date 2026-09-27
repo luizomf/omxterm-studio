@@ -272,11 +272,16 @@ export function App() {
           >
             Edit
           </button>
-          <button aria-pressed={tabs} onClick={() => setTabs(!tabs)}>
+          <button
+            aria-pressed={tabs}
+            title="Preview tabs only — does not change exported settings"
+            onClick={() => setTabs(!tabs)}
+          >
             Tabs
           </button>
           <button
             aria-pressed={snippets}
+            title="Fictional snippets — no commands are run"
             onClick={() => setSnippets(!snippets)}
           >
             Snippets
@@ -459,6 +464,10 @@ export function App() {
               <h2>Bring your own</h2>
               <span>JSON · stays local</span>
             </div>
+            <p className="hint">
+              Already use OMXTerm? Import your config first to keep its
+              preferences. Import the theme separately; paths are never opened.
+            </p>
             <div className="file-buttons">
               <button
                 className="secondary-button"
@@ -512,6 +521,53 @@ export function App() {
               No uploads, accounts, or analytics.
             </p>
           </section>
+          <details className="setup-guide">
+            <summary>Use these files in OMXTerm</summary>
+            <ol>
+              <li>
+                Choose <strong>Configuration → Target platform</strong>. Import
+                your existing config to keep its settings, then edit. Apply
+                pending shortcuts or JSON before downloading.
+              </li>
+              <li>
+                Download the edited pair and extract it. Back up your existing
+                files, then copy <code>config.json</code> and{" "}
+                <code>themes/theme.json</code> together into your OMXTerm
+                configuration folder.
+              </li>
+              <li>
+                In OMXTerm, choose{" "}
+                <strong>View → Reload User Configuration</strong>. Background
+                effects apply live. Title/tab visibility and always-on-top
+                defaults affect new windows. Font family and line height need
+                new tabs or a restart for existing tabs.
+              </li>
+            </ol>
+            <p>
+              Default folder:{" "}
+              <code>
+                {platform === "win32"
+                  ? "%USERPROFILE%\\.config\\omxterm"
+                  : "~/.config/omxterm"}
+              </code>
+              . If you set <code>XDG_CONFIG_HOME</code>, use its{" "}
+              <code>omxterm</code> subfolder instead. Studio never installs
+              files or reloads the app.
+            </p>
+            <p>
+              Only changing colors? Download <strong>Theme JSON</strong> and
+              point your existing config's <code>theme.path</code> to it.
+              <strong> Config JSON</strong> keeps the existing theme path; only
+              the pair links to the edited palette.
+            </p>
+            <a
+              href="https://github.com/luizomf/omxterm/blob/main/docs/configuration.md"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open the desktop configuration guide ↗
+            </a>
+          </details>
           <details className="about-preview">
             <summary>About this preview</summary>
             <p>
@@ -521,14 +577,15 @@ export function App() {
               rules.
             </p>
             <p>
-              Preview toggles are not configuration settings. Snippets and
-              terminal content are fictional and never execute. Only the two
-              original OMXTerm palettes are included.
+              Preview toggles are not configuration settings. Window settings
+              are export-only: this preview stays opaque and does not simulate
+              native blur. Snippets and terminal content are fictional and never
+              execute. Only the two original OMXTerm palettes are included.
             </p>
             <p>
-              Configuration schema v1, targeting OMXTerm 0.14.1 development
-              behavior. Always keep a backup before applying files in the
-              application.
+              Configuration schema v1, checked against OMXTerm commit 9d7b01e
+              (0.17.1-dev.0; latest published release 0.17.0). Always keep a
+              backup before applying files in the application.
             </p>
           </details>
         </div>

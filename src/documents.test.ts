@@ -36,6 +36,14 @@ describe("paired export", () => {
       version: 1 as const,
       theme: { path: "C:\\themes\\old.json" },
       font: { size: 18 },
+      window: {
+        alwaysOnTop: false,
+        showTitleBar: false,
+        showTabBar: true,
+        blur: true,
+        transparency: 0.375,
+      },
+      keybinds: { toggleTitleBar: "Alt+Shift+D" },
     };
     const files = unzipSync(
       createBundle(config, parseTheme(JSON.stringify(omtheme)), "darwin"),
@@ -45,9 +53,8 @@ describe("paired export", () => {
       "themes/theme.json",
     ]);
     expect(JSON.parse(strFromU8(files["config.json"]))).toEqual({
-      version: 1,
+      ...config,
       theme: { path: "./themes/theme.json" },
-      font: { size: 18 },
     });
     expect(
       JSON.parse(strFromU8(files["themes/theme.json"])).colors.brightBlack,
