@@ -22,6 +22,19 @@ describe("configuration schema boundary", () => {
     { version: 1, scrollback: { lines: 100001 } },
     { version: 1, keyboard: { optionAsAlt: "sometimes" } },
     { version: 1, window: { alwaysOnTop: "false" } },
+    { version: 1, window: { showTitleBar: "false" } },
+    { version: 1, window: { showTabBar: 0 } },
+    { version: 1, window: { blur: null } },
+    { version: 1, window: { transparency: "0.5" } },
+    { version: 1, window: { transparency: true } },
+    { version: 1, window: { transparency: null } },
+    { version: 1, window: { transparency: -0.001 } },
+    { version: 1, window: { transparency: 1.001 } },
+    { version: 1, window: { blurStrength: 20 } },
+    { version: 1, window: { opacity: 0.5 } },
+    { version: 1, windowsShell: "" },
+    { version: 1, windowsShell: null },
+    { version: 1, windowsShell: "C:\\bad\0shell.exe" },
     { version: 1, confirmClose: 1 },
     { version: 1, logLevel: "trace" },
     { version: 1, theme: {} },
@@ -48,12 +61,77 @@ describe("configuration schema boundary", () => {
       terminal: { padding: { top: 0, right: 128, bottom: 8, left: 16 } },
       scrollback: { lines: 0 },
       keyboard: { optionAsAlt: "right" },
-      window: { alwaysOnTop: true },
+      window: {
+        alwaysOnTop: true,
+        showTitleBar: false,
+        showTabBar: false,
+        blur: true,
+        transparency: 0.375,
+      },
       theme: { path: "./themes/example.json" },
-      keybinds: { newTab: "Cmd+Shift+Y" },
+      keybinds: { newTab: "Cmd+Shift+Y", toggleTitleBar: "Ctrl+Alt+D" },
     };
     expect(parse(input)).toEqual(input);
   });
+
+  it.each([0, 0.001, 0.375, 1])(
+    "preserves transparency %s without clamping",
+    (transparency) => {
+      const input = { version: 1, window: { transparency, blur: false } };
+      expect(parse(input)).toEqual(input);
+    },
+  );
+
+  it("rejects non-finite transparency in otherwise valid JSON", () => {
+    expect(() =>
+      parseConfiguration(
+        '{"version":1,"window":{"transparency":1e999}}',
+        "darwin",
+      ),
+    ).toThrow("window.transparency");
+  });
+
+  it.each([
+    "C:\\Tools\\pwsh.exe",
+    "C:/Tools/pwsh.exe",
+    "\\\\server\\share\\shell.exe",
+    "\\Tools\\shell.exe",
+    "/Tools/shell.exe",
+  ])(
+    "accepts Windows absolute-path syntax without inspecting %s",
+    (windowsShell) => {
+      expect(
+        parseConfiguration(
+          JSON.stringify({ version: 1, windowsShell }),
+          "win32",
+        ).windowsShell,
+      ).toBe(windowsShell);
+    },
+  );
+
+  it.each(["shell.exe", "C:shell.exe", "~/shell.exe", "%HOME%/shell.exe"])(
+    "requires absolute Windows syntax only on the Windows target: %s",
+    (windowsShell) => {
+      const text = JSON.stringify({ version: 1, windowsShell });
+      expect(() => parseConfiguration(text, "win32")).toThrow("absolute");
+      for (const platform of ["darwin", "linux"] as const)
+        expect(parseConfiguration(text, platform).windowsShell).toBe(
+          windowsShell,
+        );
+    },
+  );
+
+  it.each(["darwin", "linux", "win32"] as const)(
+    "keeps omitted defaults implicit on %s",
+    (platform) => {
+      expect(parseConfiguration('{"version":1}', platform)).toEqual({
+        version: 1,
+      });
+      expect(parseConfiguration('{"version":1,"window":{}}', platform)).toEqual(
+        { version: 1, window: {} },
+      );
+    },
+  );
 
   it("checks collisions after target-specific modifier canonicalization", () => {
     const text = JSON.stringify({

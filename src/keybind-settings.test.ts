@@ -1,6 +1,77 @@
 import { expect, it } from "vitest";
 import { applyKeybindSettings, keybindIssues } from "./keybind-settings";
 import { keybindWarnings, type Configuration } from "./configuration";
+import {
+  TERMINAL_ACTION_NAMES,
+  terminalDefaultKeybinds,
+} from "./contract/terminal-keybinds";
+
+it("covers exactly the desktop's 27 configuration actions", () => {
+  expect(TERMINAL_ACTION_NAMES).toEqual([
+    "quit",
+    "copy",
+    "paste",
+    "selectAll",
+    "newWindow",
+    "closeWindow",
+    "newTab",
+    "closeTab",
+    "nextTab",
+    "previousTab",
+    "selectTab1",
+    "selectTab2",
+    "selectTab3",
+    "selectTab4",
+    "selectTab5",
+    "selectTab6",
+    "selectTab7",
+    "selectTab8",
+    "selectTab9",
+    "zoomIn",
+    "zoomOut",
+    "actualSize",
+    "toggleFullScreen",
+    "toggleSnippets",
+    "toggleTabBar",
+    "toggleTitleBar",
+    "reloadConfig",
+  ]);
+});
+
+it.each([
+  ["darwin", "CommandOrControl+Shift+D", "Cmd+Shift+D"],
+  ["linux", "Control+Shift+D", "Ctrl+Shift+D"],
+  ["win32", "Control+Shift+D", "Ctrl+Shift+D"],
+] as const)(
+  "inherits the title-bar shortcut and checks aliases on %s",
+  (platform, inherited, alias) => {
+    expect(terminalDefaultKeybinds(platform).toggleTitleBar).toBe(inherited);
+    expect(keybindIssues({}, platform)).toEqual({});
+    expect(keybindIssues({ newTab: alias }, platform)).toEqual({
+      newTab: "Conflicts with Toggle title bar.",
+      toggleTitleBar: "Conflicts with New tab.",
+    });
+    const config: Configuration = {
+      version: 1,
+      window: { showTitleBar: false, blur: true, transparency: 0.4 },
+    };
+    expect(
+      applyKeybindSettings(config, { toggleTitleBar: "Alt+Shift+D" }, platform),
+    ).toEqual({ ...config, keybinds: { toggleTitleBar: "Alt+Shift+D" } });
+    expect(applyKeybindSettings(config, {}, platform)).toEqual(config);
+  },
+);
+
+it("rechecks the title-bar default against target-specific CmdOrCtrl aliases", () => {
+  const overrides = { newTab: "Ctrl+Shift+D" };
+  expect(keybindIssues(overrides, "darwin")).toEqual({});
+  expect(keybindIssues(overrides, "linux").newTab).toContain(
+    "Toggle title bar",
+  );
+  expect(keybindIssues(overrides, "win32").newTab).toContain(
+    "Toggle title bar",
+  );
+});
 
 it.each(["darwin", "linux", "win32"] as const)(
   "restores inherited defaults without exporting a full %s key map",

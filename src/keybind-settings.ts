@@ -37,6 +37,7 @@ export const KEYBIND_LABELS: Readonly<Record<TerminalActionName, string>> = {
   toggleFullScreen: "Toggle fullscreen",
   toggleSnippets: "Toggle snippets",
   toggleTabBar: "Toggle tab bar",
+  toggleTitleBar: "Toggle title bar",
   reloadConfig: "Reload configuration",
 };
 

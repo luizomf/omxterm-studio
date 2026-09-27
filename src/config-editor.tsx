@@ -22,7 +22,7 @@ function NumberField({
   value: number;
   min: number;
   max: number;
-  step?: number;
+  step?: number | "any";
   onChange: (value: number) => void;
   onError: (message: string) => void;
 }) {
@@ -56,7 +56,7 @@ function NumberField({
             );
             return;
           }
-          onChange(number);
+          if (number !== value) onChange(number);
         }}
       />
     </label>
@@ -102,6 +102,8 @@ export function ConfigEditor({
   useEffect(() => setShell(config.windowsShell ?? ""), [config.windowsShell]);
   const font = (value: NonNullable<Configuration["font"]>) =>
     onChange({ ...config, font: { ...config.font, ...value } });
+  const windowPreference = (value: NonNullable<Configuration["window"]>) =>
+    onChange({ ...config, window: { ...config.window, ...value } });
   const warnings = keybindWarnings(config, platform);
   return (
     <>
@@ -120,6 +122,11 @@ export function ConfigEditor({
           <option value="win32">Windows</option>
         </select>
       </label>
+      <p className="hint">
+        Choose the system that will use these files before importing. Omitted
+        settings keep OMXTerm defaults; opening a control does not add them to
+        your JSON.
+      </p>
       {pendingJson && (
         <p className="warning">
           Apply or discard Configuration JSON before editing the configuration
@@ -131,6 +138,78 @@ export function ConfigEditor({
         aria-label="Configuration controls"
         disabled={pendingJson}
       >
+        <details className="window-settings" open>
+          <summary>Window & background</summary>
+          <p className="hint">
+            Export only. This browser preview stays opaque and keeps its own
+            chrome; it cannot show native desktop blur.
+          </p>
+          <NumberField
+            label="Background transparency (0–1)"
+            value={config.window?.transparency ?? 0}
+            min={0}
+            max={1}
+            step="any"
+            onChange={(transparency) => windowPreference({ transparency })}
+            onError={onError}
+          />
+          <p className="hint">
+            0 is opaque; 1 removes the background tint where supported. Text,
+            cursor, selection and explicit terminal backgrounds do not fade.
+          </p>
+          <label className="check-field">
+            <input
+              type="checkbox"
+              checked={config.window?.blur ?? false}
+              onChange={(e) => windowPreference({ blur: e.target.checked })}
+            />
+            Request native blur
+          </label>
+          <p className="hint">
+            Blur needs transparency above 0. Both settings apply on reload;
+            visible results depend on the operating system.
+            {platform === "darwin"
+              ? " macOS prefers direct background blur, with HUD vibrancy as fallback."
+              : platform === "win32"
+                ? " Windows stays opaque without blur. Acrylic requires Windows 11 22H2 or later and may still fall back to an opaque theme."
+                : " Linux blur is best effort on X11 with xprop and a supporting compositor. Native Wayland blur is not supported."}
+          </p>
+          <label className="check-field">
+            <input
+              type="checkbox"
+              checked={config.window?.showTitleBar ?? true}
+              onChange={(e) =>
+                windowPreference({ showTitleBar: e.target.checked })
+              }
+            />
+            Show title bar in new windows
+          </label>
+          <label className="check-field">
+            <input
+              type="checkbox"
+              checked={config.window?.showTabBar ?? true}
+              onChange={(e) =>
+                windowPreference({ showTabBar: e.target.checked })
+              }
+            />
+            Show tab bar in new windows
+          </label>
+          <label className="check-field">
+            <input
+              type="checkbox"
+              checked={config.window?.alwaysOnTop ?? false}
+              onChange={(e) =>
+                windowPreference({ alwaysOnTop: e.target.checked })
+              }
+            />
+            New windows always on top
+          </label>
+          <p className="hint">
+            These three defaults affect new windows, not existing windows on
+            reload. The tab bar also needs at least two tabs. Use OMXTerm's menu
+            or shortcuts to toggle an existing window.
+          </p>
+        </details>
         <KeybindEditor
           config={config}
           platform={platform}
@@ -138,6 +217,10 @@ export function ConfigEditor({
           onPendingChange={onPendingShortcuts}
           onError={onError}
         />
+        <div className="section-heading">
+          <h2>Font & spacing</h2>
+          <span>Preview + export</span>
+        </div>
         <label className="field">
           Installed font family
           <input
@@ -149,7 +232,8 @@ export function ConfigEditor({
         </label>
         <p className="hint">
           The browser tries this local family, then monospace. No font files are
-          read. Availability and rendering can differ in OMXTerm.
+          read. Leave blank for OMXTerm's bundled FiraCode Nerd Font Mono.
+          Availability and rendering can differ in OMXTerm.
         </p>
         <div className="field-pair">
           <NumberField
@@ -259,16 +343,6 @@ export function ConfigEditor({
           />
           Confirm closing busy sessions
         </label>
-        <label className="check-field">
-          <input
-            type="checkbox"
-            checked={config.window?.alwaysOnTop ?? false}
-            onChange={(e) =>
-              onChange({ ...config, window: { alwaysOnTop: e.target.checked } })
-            }
-          />
-          New windows always on top
-        </label>
         <label className="field">
           Windows shell path
           <input
@@ -284,8 +358,10 @@ export function ConfigEditor({
           />
         </label>
         <p className="hint">
-          Native behavior is not simulated. The browser cannot validate
-          installed fonts, files, or shell executables.
+          Leave blank for the application default. On Windows, use an absolute
+          path to an existing file, with no arguments or variable expansion.
+          Accepted but unused on macOS/Linux. Studio checks syntax only; OMXTerm
+          checks the file on Windows.
         </p>
       </fieldset>
       <details className="json-editor">

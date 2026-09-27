@@ -22,7 +22,13 @@ export interface Configuration {
   terminal?: { padding?: Partial<Record<PaddingSide, number>> };
   scrollback?: { lines?: number };
   keyboard?: { optionAsAlt?: "none" | "left" | "right" | "both" };
-  window?: { alwaysOnTop?: boolean };
+  window?: {
+    alwaysOnTop?: boolean;
+    showTitleBar?: boolean;
+    showTabBar?: boolean;
+    blur?: boolean;
+    transparency?: number;
+  };
   theme?: { path: string };
   keybinds?: Partial<Record<TerminalActionName, string>>;
 }
@@ -172,9 +178,19 @@ export function parseConfiguration(
       ["none", "left", "right", "both"],
       "keyboard.optionAsAlt",
     );
-  const window = optionalObject(root, "window", ["alwaysOnTop"]);
-  if (window && "alwaysOnTop" in window)
-    boolean(window.alwaysOnTop, "window.alwaysOnTop");
+  const window = optionalObject(root, "window", [
+    "alwaysOnTop",
+    "showTitleBar",
+    "showTabBar",
+    "blur",
+    "transparency",
+  ]);
+  if (window) {
+    for (const key of ["alwaysOnTop", "showTitleBar", "showTabBar", "blur"])
+      if (key in window) boolean(window[key], `window.${key}`);
+    if ("transparency" in window)
+      range(window.transparency, "window.transparency", 0, 1, false);
+  }
   const theme = optionalObject(root, "theme", ["path"]);
   if (theme) pathString(theme.path, "theme.path");
   const keybinds = optionalObject(root, "keybinds", TERMINAL_ACTION_NAMES);

@@ -555,6 +555,8 @@ a {
   margin: 17px 0 6px;
 }
 .json-editor,
+.window-settings,
+.setup-guide,
 .about-preview {
   font-size: 11px;
   color: #a7aec1;
@@ -563,6 +565,8 @@ a {
   margin-top: 17px;
 }
 .json-editor summary,
+.window-settings summary,
+.setup-guide summary,
 .about-preview summary {
   cursor: pointer;
   color: #c7ccda;
@@ -639,9 +643,27 @@ a {
 .keybind-row .field-error {
   margin-bottom: 0;
 }
-.about-preview p {
+.about-preview p,
+.setup-guide {
   font-size: 10px;
   line-height: 1.6;
+}
+.setup-guide summary {
+  font-size: 11px;
+}
+.setup-guide ol {
+  padding-left: 18px;
+}
+.setup-guide li + li {
+  margin-top: 9px;
+}
+.setup-guide code {
+  overflow-wrap: anywhere;
+}
+.setup-guide a {
+  color: #b3c9ff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .panel-export {
   flex: none;

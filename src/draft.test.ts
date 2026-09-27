@@ -8,7 +8,19 @@ it.each(["darwin", "linux", "win32"] as const)(
   (platform) => {
     const draft = {
       theme: parseTheme(JSON.stringify(omtheme)),
-      config: { version: 1 as const, font: { size: 20 } },
+      config: {
+        version: 1 as const,
+        font: { size: 20 },
+        window: {
+          alwaysOnTop: true,
+          showTitleBar: false,
+          showTabBar: false,
+          blur: true,
+          transparency: 0.375,
+        },
+        keybinds: { toggleTitleBar: "Alt+Shift+D" },
+        windowsShell: "C:\\Tools\\shell.exe",
+      },
       platform,
     };
     expect(decodeDraft(encodeDraft(draft))).toEqual(draft);

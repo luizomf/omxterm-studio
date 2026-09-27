@@ -12,14 +12,15 @@ A static, browser-only theme and configuration workshop for [OMXTerm](https://gi
 - See a fictional diff, all 16 ANSI slots (plain, bold, dim, and backgrounds), fastfetch, htop, tmux status, tabs, and snippets together. Preview controls can isolate a scene, show/hide chrome, or enter fullscreen.
 - Move the neutral editor left/right, or collapse it without resizing or dimming the preview. Use arrow keys in tab strips and Escape to collapse the editor.
 - Undo/redo theme edits, restore a selected color, or compare with a reference. Downloads always contain the edited theme, not the comparison reference.
-- Edit configuration independently. Installed font names use CSS with monospace fallback; no font upload, enumeration, or permission prompt.
+- Edit configuration independently, including title/tab visibility, background transparency and native blur requests. Window settings are export-only; the browser preview stays opaque.
+- Try installed font names with CSS monospace fallback; no font upload, enumeration, or permission prompt.
 - Import local JSON and download either document or a coherent ZIP. Optionally remember the current draft on this device.
 
 This is a **DOM/CSS appearance simulation**, not a live terminal or the Restty renderer. It never runs shell commands, and cannot certify native font rendering, executable paths, native shortcuts, or operating-system window behavior. Text layout and dim rendering are approximations. Preview tabs and sidebar colors follow OMXTerm's sRGB mixing rules.
 
 ## Keyboard shortcuts
 
-Open **Configuration → Keyboard shortcuts** to edit all 26 supported OMXTerm actions. Filter by action name, type a combination, and use **Apply shortcuts** to validate and apply the complete set. You can swap two bindings before applying, rather than getting stuck at an intermediate conflict. **Discard edits** returns to the applied configuration.
+Open **Configuration → Keyboard shortcuts** to edit all 27 supported OMXTerm actions, including **Toggle title bar**. Filter by action name, type a combination, and use **Apply shortcuts** to validate and apply the complete set. You can swap two bindings before applying, rather than getting stuck at an intermediate conflict. **Discard edits** returns to the applied configuration.
 
 Defaults follow the selected macOS/Linux/Windows target. Linux and Windows keep the desktop's shifted terminal defaults. `CmdOrCtrl` / `CommandOrControl` resolves to Command on macOS and Control elsewhere; aliases, inherited bindings, and conflicts are checked for that target. Use `Plus` for the `+` key, and at least one non-Shift modifier. Explicit overrides are not rewritten when switching targets. The restore button beside an action removes its override on application; merely viewing defaults does not copy the entire map into JSON.
 
@@ -27,11 +28,19 @@ Invalid syntax and duplicate combinations block application. Shell-control-key i
 
 Shortcut edits survive section switches and appearance adjustments. Configuration imports or JSON application refresh the shortcut draft when the applied keybindings change. To prevent conflicting drafts, apply or discard shortcut edits before editing the full JSON document. Conversely, pending JSON locks the other configuration controls until **Apply JSON** or **Discard JSON edits**; the target-platform selector remains available.
 
+## Window settings
+
+Open **Configuration → Window & background**. `showTitleBar` and `showTabBar` default to `true`; `alwaysOnTop` and `blur` to `false`; `transparency` to `0`. Transparency accepts any finite fraction from 0 through 1, without clamping. Blur only has a visible effect with positive transparency. Theme colors stay `#RRGGBB`.
+
+These controls are **export-only**, not a native-effects preview. In OMXTerm, transparency reduces the background tint, not text, cursor, selection, images, or explicit terminal cell backgrounds. macOS prefers direct blur with HUD fallback; Linux blur is best effort on X11 with `xprop` and a supporting compositor, not native Wayland. Windows stays opaque without blur; Acrylic needs Windows 11 22H2 or later and may still fall back to opaque. No operating system guarantees visible blur.
+
+Background effects apply live on valid configuration reload. Title/tab visibility and always-on-top initialize new windows; reload does not change existing windows' choices. An enabled tab bar also needs at least two tabs. The **Tabs** toolbar button only changes Studio's demo, not the exported `showTabBar` setting.
+
 ## Import and export
 
 Imports accept strict UTF-8 JSON up to **256 KiB**. Unknown fields and invalid values are rejected without replacing current work. Import a configuration and its palette separately: the site never opens or fetches `theme.path`.
 
-Choose the target platform before importing platform-specific keybindings. All supported optional v1 configuration fields are preserved; use **Configuration JSON & keybindings** for the full document. JSON edits take effect only after **Apply JSON** validates them. Host-specific properties still need verification in OMXTerm.
+Choose the target platform before importing platform-specific keybindings. All supported optional v1 configuration fields are preserved; use **Configuration JSON & keybindings** for the full document, including `theme.path`. On Windows, `windowsShell` must be an absolute Windows path to an existing regular file; Studio only checks its syntax, and OMXTerm checks the file. It accepts no arguments or variable expansion and has no effect on macOS/Linux. JSON edits take effect only after **Apply JSON** validates them. Host-specific properties still need verification in OMXTerm.
 
 Switching between Theme and Configuration keeps your selected color, incomplete theme text, and unapplied JSON or shortcut edits in place. The export controls identify pending changes: downloads still use the last applied configuration. Invalid theme text blocks theme/pair downloads, but configuration can still be downloaded independently.
 
@@ -44,7 +53,9 @@ config.json
 themes/theme.json
 ```
 
-Only the configuration inside that ZIP receives `"theme": { "path": "./themes/theme.json" }`. Standalone configuration export preserves its existing path. Extract both files together, inspect them, and place them in OMXTerm's configuration directory as described in [the desktop configuration guide](https://github.com/luizomf/omxterm/blob/main/docs/configuration.md). Back up existing files first; Studio never installs or replaces them.
+Only the configuration inside that ZIP receives `"theme": { "path": "./themes/theme.json" }`. Standalone configuration export preserves its existing path. Extract both files together, inspect them, and place them in OMXTerm's configuration directory as described in [the desktop configuration guide](https://github.com/luizomf/omxterm/blob/main/docs/configuration.md). Back up existing files first; Studio never installs or replaces them. If you already use OMXTerm, **import your existing config before editing** so the pair retains its preferences. The in-app **Use these files in OMXTerm** guide covers the folder, export choices, and reload step.
+
+Choose **View → Reload User Configuration** in OMXTerm after copying the files. Font family and line height apply to new tabs; existing tabs need a restart. Window-default and live-effect behavior is described above.
 
 ## Privacy
 
@@ -79,6 +90,6 @@ Set `STUDIO_BASE_URL` to test a different deployment. CI installs Playwright Chr
 
 ## Contract and license
 
-The workshop targets **OMXTerm configuration/theme schema v1**, inspected at desktop commit [`656cbad`](https://github.com/luizomf/omxterm/commit/656cbadf15276dc24f8e8a81971d58d4f968df47) (0.14.1 development behavior). See [the product contract](docs/spec.md) and [contract provenance](docs/contract-provenance.md) before changing validation or appearance rules.
+The workshop targets **OMXTerm configuration/theme schema v1**, inspected at desktop commit [`9d7b01e`](https://github.com/luizomf/omxterm/commit/9d7b01eff21ffb64cbd03ba2d426df8ef1618ce8) (0.17.1-dev.0 baseline; latest published release v0.17.0). See [the product contract](docs/spec.md) and [contract provenance](docs/contract-provenance.md) before changing validation or appearance rules.
 
 MIT. Original palettes only; no redistributed third-party theme catalog.
