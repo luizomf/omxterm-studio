@@ -41,15 +41,15 @@ test("renders a complete fictional diff while keeping foreground, selection and 
   ).toHaveCSS("color", "rgb(80, 80, 104)");
   await expect(buffer.getByText("--- a/prompt.ts", { exact: true })).toHaveCSS(
     "color",
-    "rgb(255, 126, 154)",
+    "rgb(255, 128, 170)",
   );
   await expect(buffer.getByText("+++ b/prompt.ts", { exact: true })).toHaveCSS(
     "color",
-    "rgb(55, 254, 183)",
+    "rgb(0, 255, 191)",
   );
   await expect(buffer.getByText("@@ -1,3 +1,3 @@", { exact: true })).toHaveCSS(
     "color",
-    "rgb(107, 204, 255)",
+    "rgb(128, 212, 255)",
   );
   await expect(buffer.getByText("const prompt = {", { exact: true })).toHaveCSS(
     "color",
@@ -57,13 +57,13 @@ test("renders a complete fictional diff while keeping foreground, selection and 
   );
   const removed = buffer.getByText('"quiet"', { exact: true });
   const added = buffer.getByText('"vivid"', { exact: true });
-  await expect(removed).toHaveCSS("background-color", "rgb(255, 126, 154)");
-  await expect(added).toHaveCSS("background-color", "rgb(55, 254, 183)");
+  await expect(removed).toHaveCSS("background-color", "rgb(255, 128, 170)");
+  await expect(added).toHaveCSS("background-color", "rgb(0, 255, 191)");
   await expect(removed).toHaveCSS("color", "rgb(0, 0, 0)");
   await expect(added).toHaveCSS("color", "rgb(0, 0, 0)");
   const selection = buffer.getByText("a little selected text", { exact: true });
-  await expect(selection).toHaveCSS("background-color", "rgb(59, 79, 166)");
-  await expect(selection).toHaveCSS("color", "rgb(255, 255, 255)");
+  await expect(selection).toHaveCSS("background-color", "rgb(80, 80, 100)");
+  await expect(selection).toHaveCSS("color", "rgb(240, 240, 255)");
   const cursors = buffer.locator(".cursor");
   await expect(cursors).toHaveCount(2);
   for (const cursor of await cursors.all())

@@ -88,9 +88,7 @@ test("keeps narrow shortcut editing inside the overlay without moving the previe
   await page
     .getByRole("button", { name: "Apply shortcuts", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Dismiss message", exact: true })
-    .click();
+  await expect(page.getByRole("status")).toHaveCount(0);
   expect(await page.getByTestId("terminal-preview").boundingBox()).toEqual(
     preview,
   );

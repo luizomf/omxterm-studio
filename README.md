@@ -8,11 +8,12 @@ A static, browser-only theme and configuration workshop for [OMXTerm](https://gi
 
 ## The workshop
 
-- Edit the 21 theme colors and name, starting with the original **OMTheme** or **Dark Ice** palette.
+- Edit the 21 theme colors and name. New visits start with the current desktop **OMTheme**; **Dark Ice** remains an alternative. Saved drafts and imported palettes are never replaced by a preset update.
 - See a fictional diff, all 16 ANSI slots (plain, bold, dim, and backgrounds), fastfetch, htop, tmux status, tabs, and snippets together. Preview controls can isolate a scene, show/hide chrome, or enter fullscreen.
-- Move the neutral editor left/right, or collapse it without resizing or dimming the preview. Use arrow keys in tab strips and Escape to collapse the editor.
+- The terminal fills the workspace, with a viewport-wide indigo/purple/rose CSS sky and one compact control row. No branding header, footer, or success toasts cover the terminal. Errors stay inside the editor; explanations live under **About this preview** and the setup guide.
+- Move the neutral editor left/right, or collapse it without resizing or dimming the preview. Its colors stay independent of dark or light terminal themes. Use arrow keys in tab strips and Escape to collapse the editor.
 - Undo/redo theme edits, restore a selected color, or compare with a reference. Downloads always contain the edited theme, not the comparison reference.
-- Edit configuration independently, including title/tab visibility, background transparency and native blur requests. Window settings are export-only; the browser preview stays opaque.
+- Edit configuration independently, including title/tab visibility, background transparency and native blur requests. Title/tab visibility updates the preview; transparency and blur are simulated over a lightweight CSS starfield with optional comet motion.
 - Try installed font names with CSS monospace fallback; no font upload, enumeration, or permission prompt.
 - Import local JSON and download either document or a coherent ZIP. Optionally remember the current draft on this device.
 
@@ -32,9 +33,9 @@ Shortcut edits survive section switches and appearance adjustments. Configuratio
 
 Open **Configuration → Window & background**. `showTitleBar` and `showTabBar` default to `true`; `alwaysOnTop` and `blur` to `false`; `transparency` to `0`. Transparency accepts any finite fraction from 0 through 1, without clamping. Blur only has a visible effect with positive transparency. Theme colors stay `#RRGGBB`.
 
-These controls are **export-only**, not a native-effects preview. In OMXTerm, transparency reduces the background tint, not text, cursor, selection, images, or explicit terminal cell backgrounds. macOS prefers direct blur with HUD fallback; Linux blur is best effort on X11 with `xprop` and a supporting compositor, not native Wayland. Windows stays opaque without blur; Acrylic needs Windows 11 22H2 or later and may still fall back to opaque. No operating system guarantees visible blur.
+Title/tab visibility updates the preview immediately. Transparency and blur use a **CSS simulation** over a fictional starfield on every target, not a prediction of native effects or platform fallbacks. Only the background tint fades; text, cursor, selection and explicit terminal backgrounds stay opaque. The **Pause sky animation** control pauses the decorative comets; reduced-motion preferences disable their animation. The sky and motion preference are preview-only and never exported or persisted. Always-on-top remains export-only. In OMXTerm, transparency reduces the background tint, not text, cursor, selection, images, or explicit terminal cell backgrounds. macOS prefers direct blur with HUD fallback; Linux blur is best effort on X11 with `xprop` and a supporting compositor, not native Wayland. Windows stays opaque without blur; Acrylic needs Windows 11 22H2 or later and may still fall back to opaque. No operating system guarantees visible blur.
 
-Background effects apply live on valid configuration reload. Title/tab visibility and always-on-top initialize new windows; reload does not change existing windows' choices. An enabled tab bar also needs at least two tabs. The **Tabs** toolbar button only changes Studio's demo, not the exported `showTabBar` setting.
+Background effects apply live on valid configuration reload. Title/tab visibility and always-on-top initialize new windows; reload does not change existing windows' choices. An enabled tab bar also needs at least two tabs. The **Tabs** toolbar button can temporarily hide Studio's demo tabs without changing the exported `showTabBar` setting. When `showTabBar` is false, that button is disabled; re-enable the configuration setting to preview tabs. Workspace column controls stay outside the simulated window so hiding chrome never hides them.
 
 ## Import and export
 
@@ -90,6 +91,6 @@ Set `STUDIO_BASE_URL` to test a different deployment. CI installs Playwright Chr
 
 ## Contract and license
 
-The workshop targets **OMXTerm configuration/theme schema v1**, inspected at desktop commit [`9d7b01e`](https://github.com/luizomf/omxterm/commit/9d7b01eff21ffb64cbd03ba2d426df8ef1618ce8) (0.17.1-dev.0 baseline; latest published release v0.17.0). See [the product contract](docs/spec.md) and [contract provenance](docs/contract-provenance.md) before changing validation or appearance rules.
+The workshop targets **OMXTerm configuration/theme schema v1**, inspected at desktop commit [`9d7b01e`](https://github.com/luizomf/omxterm/commit/9d7b01eff21ffb64cbd03ba2d426df8ef1618ce8) (0.17.1-dev.0 baseline; latest published release v0.17.0). The OMTheme palette is separately synchronized with desktop commit [`f2b6c7e`](https://github.com/luizomf/omxterm/commit/f2b6c7e745ebda401c6ae1e6fe1ad685f652c02a). See [the product contract](docs/spec.md) and [contract provenance](docs/contract-provenance.md) before changing validation or appearance rules.
 
 MIT. Original palettes only; no redistributed third-party theme catalog.

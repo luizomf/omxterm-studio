@@ -49,7 +49,7 @@ test("shows desktop window defaults without materializing them on focus or previ
   expect(await downloadConfig(page)).toEqual({ version: 1 });
 });
 
-test("edits every window setting without dropping siblings or simulating native composition", async ({
+test("previews window settings without fading content or changing exported siblings", async ({
   page,
 }) => {
   const requests: string[] = [];
@@ -73,6 +73,14 @@ test("edits every window setting without dropping siblings or simulating native 
   const originalBackground = await preview.evaluate(
     (element) => getComputedStyle(element).backgroundColor,
   );
+  const cursorBackground = await page
+    .locator(".cursor")
+    .first()
+    .evaluate((element) => getComputedStyle(element).backgroundColor);
+  const explicitBackground = page.getByText('"vivid"', { exact: true });
+  const originalExplicitBackground = await explicitBackground.evaluate(
+    (element) => getComputedStyle(element).backgroundColor,
+  );
   const originalBounds = await preview.boundingBox();
   await page.getByLabel(transparencyLabel).fill("0.375");
   await page.getByLabel(transparencyLabel).press("Tab");
@@ -91,18 +99,157 @@ test("edits every window setting without dropping siblings or simulating native 
   });
   expect(
     JSON.parse(strFromU8(files["themes/theme.json"])).colors.background,
-  ).toBe("#101014");
+  ).toBe("#000000");
   expect(await preview.boundingBox()).toEqual(originalBounds);
   await expect(preview).toHaveCSS("opacity", "1");
   await expect(preview).toHaveCSS("filter", "none");
+  await expect(preview).toHaveCSS("backdrop-filter", "blur(4px)");
+  await expect(preview).not.toHaveCSS("background-color", originalBackground);
+  expect(
+    await preview.evaluate((element) => {
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d")!;
+      context.fillStyle = getComputedStyle(element).backgroundColor;
+      context.fillRect(0, 0, 1, 1);
+      return context.getImageData(0, 0, 1, 1).data[3];
+    }),
+  ).toBeCloseTo(255 * 0.625, 0);
+  await expect(page.locator(".window-titlebar")).toHaveCount(0);
+  await expect(page.getByRole("tab", { name: "zsh · workspace" })).toHaveCount(
+    0,
+  );
+  await expect(
+    page.getByRole("button", { name: "Tabs", exact: true }),
+  ).toBeDisabled();
+  await expect(page.locator(".terminal-copy")).toHaveCSS("opacity", "1");
+  await expect(page.locator(".cursor").first()).toHaveCSS(
+    "background-color",
+    cursorBackground,
+  );
+  await expect(explicitBackground).toHaveCSS(
+    "background-color",
+    originalExplicitBackground,
+  );
+  expect(requests).toEqual([]);
+});
+
+test("applies imports and JSON to chrome and background, including defaults and zero transparency", async ({
+  page,
+}) => {
+  const preview = page.getByTestId("terminal-preview");
+  await importConfig(page, { version: 1, window: windowSettings });
+  await expect(page.locator(".window-titlebar")).toHaveCount(0);
+  await expect(preview).toHaveCSS("backdrop-filter", "blur(4px)");
+  await page.getByLabel(transparencyLabel).fill("0");
+  await page.getByLabel(transparencyLabel).press("Tab");
   await expect(preview).toHaveCSS("backdrop-filter", "none");
-  await expect(preview).toHaveCSS("background-color", originalBackground);
+  await page.getByLabel(transparencyLabel).fill("1");
+  await page.getByLabel(transparencyLabel).press("Tab");
+  await page.getByLabel("Request native blur").uncheck();
+  await expect(preview).toHaveCSS("backdrop-filter", "none");
+  await expect(preview).toHaveCSS("--preview-background-opacity", "0");
+  await page
+    .getByText("Configuration JSON & keybindings", { exact: true })
+    .click();
+  await page
+    .getByRole("textbox", { name: "Configuration JSON", exact: true })
+    .fill('{"version":1}');
+  await page.getByRole("button", { name: "Apply JSON", exact: true }).click();
   await expect(page.locator(".window-titlebar")).toBeVisible();
   await expect(
     page.getByRole("tab", { name: "zsh · workspace" }),
   ).toBeVisible();
-  await expect(page.locator(".terminal-copy")).toHaveCSS("opacity", "1");
-  expect(requests).toEqual([]);
+  await expect(preview).toHaveCSS("--preview-background-opacity", "1");
+  await page.getByRole("button", { name: "Tabs", exact: true }).click();
+  await expect(page.getByRole("tab", { name: "zsh · workspace" })).toHaveCount(
+    0,
+  );
+  expect(await downloadConfig(page)).toEqual({ version: 1 });
+});
+
+for (const width of [1440, 320]) {
+  test(`keeps preview tools available with hidden chrome and respects reduced motion at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 960 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await importConfig(page, { version: 1, window: windowSettings });
+    await page
+      .getByRole("button", { name: "Collapse editor", exact: true })
+      .click();
+    const restore = page.getByRole("button", {
+      name: "Minimize system demos column",
+    });
+    await expect(restore).toBeInViewport({ ratio: 1 });
+    const tools = (await page
+      .getByRole("group", { name: "Workspace columns" })
+      .boundingBox())!;
+    const content = (await page.locator(".terminal-scroll").boundingBox())!;
+    expect(tools.y + tools.height).toBeLessThanOrEqual(content.y);
+    await restore.click();
+    await page
+      .getByRole("button", { name: "Restore system demos column" })
+      .click();
+    await expect(page.locator(".preview-sky")).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+    await expect(page.locator(".preview-comet").first()).toHaveCSS(
+      "animation-name",
+      "none",
+    );
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await expect(page.locator(".preview-comet").first()).toHaveCSS(
+      "animation-name",
+      "comet",
+    );
+    await page.getByRole("button", { name: "Pause sky animation" }).click();
+    await expect(page.locator(".preview-comet").first()).toHaveCSS(
+      "animation-play-state",
+      "paused",
+    );
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  });
+}
+
+test("paints a single theme tint at 0.2 transparency without extra blending", async ({
+  page,
+}) => {
+  await importConfig(page, {
+    version: 1,
+    window: { transparency: 0.2, blur: true },
+  });
+  const preview = page.getByTestId("terminal-preview");
+  await expect(preview).toHaveCSS("--preview-background-opacity", "0.8");
+  await expect(preview).toHaveCSS("backdrop-filter", "blur(4px)");
+  const alpha = await preview.evaluate((element) => {
+    const context = document.createElement("canvas").getContext("2d")!;
+    context.fillStyle = getComputedStyle(element).backgroundColor;
+    context.fillRect(0, 0, 1, 1);
+    return context.getImageData(0, 0, 1, 1).data[3];
+  });
+  expect(alpha).toBe(204);
+  for (const selector of [
+    ".studio",
+    ".studio-stage",
+    ".preview-body",
+    ".terminal-column",
+    ".terminal-scroll",
+    ".scene-layout",
+    ".text-scene",
+    ".fastfetch-scene",
+  ]) {
+    const layer = page.locator(selector);
+    await expect(layer).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await expect(layer).toHaveCSS("opacity", "1");
+    await expect(layer).toHaveCSS("mix-blend-mode", "normal");
+    await expect(layer).toHaveCSS("filter", "none");
+    await expect(layer).toHaveCSS("backdrop-filter", "none");
+  }
 });
 
 test("rejects invalid window imports and JSON without changing applied work or pending text", async ({
@@ -228,9 +375,7 @@ for (const width of [1440, 390, 320]) {
     await expect(page.getByLabel("Request native blur")).toBeFocused();
     await page.keyboard.press("Space");
     await expect(page.getByLabel("Request native blur")).toBeChecked();
-    await page
-      .getByRole("button", { name: "Dismiss message", exact: true })
-      .click();
+    await expect(page.getByRole("status")).toHaveCount(0);
     await summary.scrollIntoViewIfNeeded();
     await page.screenshot({
       path: `test-results/window-settings-${width}.png`,

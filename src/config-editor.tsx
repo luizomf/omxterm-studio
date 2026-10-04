@@ -141,8 +141,9 @@ export function ConfigEditor({
         <details className="window-settings" open>
           <summary>Window & background</summary>
           <p className="hint">
-            Export only. This browser preview stays opaque and keeps its own
-            chrome; it cannot show native desktop blur.
+            Preview + export. Title/tab visibility updates here immediately.
+            Transparency and blur are CSS simulations over a fictional sky on
+            every target, not a guarantee of native effects or fallbacks.
           </p>
           <NumberField
             label="Background transparency (0–1)"
@@ -205,9 +206,10 @@ export function ConfigEditor({
             New windows always on top
           </label>
           <p className="hint">
-            These three defaults affect new windows, not existing windows on
-            reload. The tab bar also needs at least two tabs. Use OMXTerm's menu
-            or shortcuts to toggle an existing window.
+            Always-on-top is export-only. In OMXTerm, these three defaults
+            affect new windows, not existing windows on reload. The tab bar also
+            needs at least two tabs; Studio has three demo tabs. Use OMXTerm's
+            menu or shortcuts to toggle an existing window.
           </p>
         </details>
         <KeybindEditor

@@ -21,7 +21,12 @@ import {
 } from "./theme-history";
 import { ThemeEditor } from "./theme-editor";
 import { ConfigEditor } from "./config-editor";
-import { Preview, type Scene } from "./preview";
+import {
+  Preview,
+  WorkspaceColumnControls,
+  type Scene,
+  type WorkspaceColumn,
+} from "./preview";
 import { Icon } from "./icons";
 import { TabStrip } from "./tab-strip";
 import original from "./presets/omtheme.json";
@@ -37,7 +42,7 @@ function initialState() {
       ? "linux"
       : "darwin";
   const fallback = {
-    theme: presets[1],
+    theme: presets[0],
     config: { version: 1 } as Configuration,
     platform,
     remember: false,
@@ -70,25 +75,33 @@ export function App() {
   const [section, setSection] = useState<"theme" | "configuration">("theme");
   const [scene, setScene] = useState<Scene>("workspace");
   const [tabs, setTabs] = useState(true);
+  const [hiddenColumn, setHiddenColumn] = useState<WorkspaceColumn | null>(
+    null,
+  );
+  const [skyPaused, setSkyPaused] = useState(false);
   const [snippets, setSnippets] = useState(false);
   const [remember, setRemember] = useState(initial.remember);
   const [themeValid, setThemeValid] = useState(true);
   const [pendingConfigJson, setPendingConfigJson] = useState(false);
   const [pendingShortcuts, setPendingShortcuts] = useState(false);
   const [message, setMessage] = useState(initial.error);
-  const [error, setError] = useState(Boolean(initial.error));
   const [busy, setBusy] = useState(false);
   const [dirty, setDirty] = useState(false);
   const importId = useRef(0);
   const reopen = useRef<HTMLButtonElement>(null);
   const panelHeading = useRef<HTMLHeadingElement>(null);
+  const errorMessage = useRef<HTMLDivElement>(null);
   const themeFile = useRef<HTMLInputElement>(null);
   const configFile = useRef<HTMLInputElement>(null);
-  const notice = (text: string, failed = false) => {
+  const fail = (text: string) => {
     setMessage(text);
-    setError(failed);
+    setOpen(true);
   };
-  const fail = (text: string) => notice(text, true);
+
+  useEffect(() => {
+    if (message && open)
+      errorMessage.current?.scrollIntoView({ block: "nearest" });
+  }, [message, open]);
 
   useEffect(() => {
     if (!remember) return;
@@ -99,7 +112,7 @@ export function App() {
       setMessage(
         "This browser could not save the draft. Download your work before leaving.",
       );
-      setError(true);
+      setOpen(true);
     }
   }, [theme, config, platform, remember]);
 
@@ -140,9 +153,7 @@ export function App() {
     try {
       setConfig(parseConfiguration(text, platform));
       setDirty(true);
-      notice(
-        "Configuration applied locally. Native fonts and paths still need validation in OMXTerm.",
-      );
+      setMessage("");
     } catch (cause) {
       fail(cause instanceof Error ? cause.message : "Invalid configuration.");
     }
@@ -152,9 +163,7 @@ export function App() {
       parseConfiguration(jsonDocument(config), next);
       setPlatform(next);
       setDirty(true);
-      notice(
-        `Shortcut checks now target ${next === "darwin" ? "macOS" : next === "win32" ? "Windows" : "Linux"}.`,
-      );
+      setMessage("");
     } catch (cause) {
       fail(
         `Target not changed. ${cause instanceof Error ? cause.message : "Review your configuration."}`,
@@ -175,15 +184,11 @@ export function App() {
         const imported = parseTheme(text);
         editTheme(imported);
         setReference(imported);
-        notice(
-          "Theme imported locally. Your previous palette is available with Undo.",
-        );
+        setMessage("");
       } else {
         setConfig(parseConfiguration(text, platform));
         setDirty(true);
-        notice(
-          "Configuration imported. theme.path was not opened: import the theme file separately.",
-        );
+        setMessage("");
       }
     } catch (cause) {
       if (id === importId.current)
@@ -214,11 +219,7 @@ export function App() {
           jsonDocument(parseConfiguration(jsonDocument(config), platform)),
           "application/json",
         );
-      notice(
-        kind === "bundle"
-          ? "Download requested. Extract config.json and themes/theme.json together into your OMXTerm configuration folder."
-          : `${kind === "theme" ? "theme.json" : "config.json"} download requested. Standalone exports do not rewrite theme.path.`,
-      );
+      setMessage("");
     } catch (cause) {
       fail(
         cause instanceof Error
@@ -231,9 +232,7 @@ export function App() {
     if (!enabled) {
       try {
         localStorage.removeItem(DRAFT_KEY);
-        notice(
-          "Saved draft removed from this browser. Current edits are still here.",
-        );
+        setMessage("");
       } catch {
         fail(
           "The browser could not remove the saved draft. Clear this site's storage in browser settings.",
@@ -245,18 +244,14 @@ export function App() {
 
   return (
     <div className="studio">
+      <div className="preview-sky" aria-hidden="true" data-paused={skyPaused}>
+        <i className="preview-comet" />
+        <i className="preview-comet" />
+        <i className="preview-comet" />
+        <i className="preview-moon" />
+      </div>
       <header className="studio-header">
-        <div className="brand">
-          <span className="brand-mark" aria-hidden="true">
-            ❯_
-          </span>
-          <div>
-            <h1>
-              OMXTerm <span>Studio</span>
-            </h1>
-            <p>Your terminal. Your colors.</p>
-          </div>
-        </div>
+        <h1 className="sr-only">OMXTerm Studio</h1>
         <div className="preview-toolbar" aria-label="Preview controls">
           <button
             ref={reopen}
@@ -273,18 +268,38 @@ export function App() {
             Edit
           </button>
           <button
-            aria-pressed={tabs}
-            title="Preview tabs only — does not change exported settings"
+            className="icon-button"
+            aria-label="Tabs"
+            aria-pressed={tabs && (config.window?.showTabBar ?? true)}
+            disabled={config.window?.showTabBar === false}
+            title={
+              config.window?.showTabBar === false
+                ? "Enable Show tab bar in Configuration to preview tabs"
+                : "Preview tabs only — does not change exported settings"
+            }
             onClick={() => setTabs(!tabs)}
           >
-            Tabs
+            <Icon name="tabs" />
           </button>
           <button
+            className="icon-button"
+            aria-label="Snippets"
             aria-pressed={snippets}
             title="Fictional snippets — no commands are run"
             onClick={() => setSnippets(!snippets)}
           >
-            Snippets
+            <Icon name="code" />
+          </button>
+          <button
+            className="icon-button"
+            aria-label={
+              skyPaused ? "Resume sky animation" : "Pause sky animation"
+            }
+            title={skyPaused ? "Resume sky animation" : "Pause sky animation"}
+            aria-pressed={!skyPaused}
+            onClick={() => setSkyPaused(!skyPaused)}
+          >
+            <Icon name={skyPaused ? "play" : "pause"} />
           </button>
           <button
             className="icon-button"
@@ -303,17 +318,23 @@ export function App() {
           >
             <Icon name="expand" />
           </button>
-          <a
-            className="icon-button"
-            href="https://github.com/luizomf/omxterm-studio"
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Source on GitHub"
-            title="Source on GitHub"
-          >
-            <Icon name="external" />
-          </a>
         </div>
+        {comparing && (
+          <button
+            className="reference-indicator"
+            aria-label="Viewing reference · Return to edits"
+            title="Viewing reference · Return to edits"
+            onClick={() => setComparing(false)}
+          >
+            Reference
+          </button>
+        )}
+        {scene === "workspace" && (
+          <WorkspaceColumnControls
+            hiddenColumn={hiddenColumn}
+            onChange={setHiddenColumn}
+          />
+        )}
       </header>
       <main className="studio-stage">
         <Preview
@@ -324,26 +345,9 @@ export function App() {
           tabs={tabs}
           snippets={snippets}
           comparing={comparing}
-          onDemo={() =>
-            notice("This is a simulated snippet. No command was run.")
-          }
+          hiddenColumn={hiddenColumn}
         />
       </main>
-      <footer className="studio-footer">
-        <span>
-          <i /> Local-only editing <span className="footer-divider">/</span> DOM
-          simulation, not a live terminal
-        </span>
-        <span className="footer-right">OMXTerm config v1</span>
-      </footer>
-      {comparing && (
-        <button
-          className="reference-banner"
-          onClick={() => setComparing(false)}
-        >
-          Viewing reference · Return to edits
-        </button>
-      )}
       <aside
         id="editor-panel"
         className={`editor-panel panel-${side}`}
@@ -352,7 +356,7 @@ export function App() {
       >
         <div className="panel-header">
           <div>
-            <span className="eyebrow">THE WORKSHOP</span>
+            <span className="eyebrow">OMXTERM STUDIO</span>
             <h2 ref={panelHeading} tabIndex={-1}>
               Make it feel like you.
             </h2>
@@ -379,6 +383,18 @@ export function App() {
             </button>
           </div>
         </div>
+        {message && (
+          <div ref={errorMessage} className="editor-message" role="alert">
+            <span>{message}</span>
+            <button
+              className="icon-button"
+              aria-label="Dismiss message"
+              onClick={() => setMessage("")}
+            >
+              <Icon name="close" />
+            </button>
+          </div>
+        )}
         <TabStrip
           className="editor-sections"
           label="Editor section"
@@ -428,7 +444,7 @@ export function App() {
                 onClick={() => {
                   setReference(theme);
                   setComparing(false);
-                  notice("Comparison reference updated.");
+                  setMessage("");
                 }}
               >
                 Set reference
@@ -571,22 +587,36 @@ export function App() {
           <details className="about-preview">
             <summary>About this preview</summary>
             <p>
+              Local-only editing: no uploads, accounts or analytics. The sky
+              covers the workspace; its pause control respects reduced-motion
+              preferences. Preview controls never change your exported files.
+            </p>
+            <p>
               This preview simulates the terminal with DOM/CSS, not Restty.
               Fonts, dim text, cell spacing, ligatures, and native chrome may
               differ in OMXTerm. Tabs and snippets use its theme color-mixing
               rules.
             </p>
             <p>
-              Preview toggles are not configuration settings. Window settings
-              are export-only: this preview stays opaque and does not simulate
-              native blur. Snippets and terminal content are fictional and never
-              execute. Only the two original OMXTerm palettes are included.
+              Preview toolbar toggles are not configuration settings. Title/tab
+              visibility follows the configuration; background transparency and
+              blur are CSS simulations over a fictional sky, not native effects
+              or platform fallback predictions. Always-on-top is export-only.
+              Snippets and terminal content are fictional and never execute.
+              Only the two original OMXTerm palettes are included.
             </p>
             <p>
               Configuration schema v1, checked against OMXTerm commit 9d7b01e
               (0.17.1-dev.0; latest published release 0.17.0). Always keep a
               backup before applying files in the application.
             </p>
+            <a
+              href="https://github.com/luizomf/omxterm-studio"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Source on GitHub ↗
+            </a>
           </details>
         </div>
         <div className="panel-export">
@@ -630,28 +660,8 @@ export function App() {
               Config JSON
             </button>
           </div>
-          <p>
-            ZIP pairs config.json with themes/theme.json.
-            <br />
-            Only the ZIP's config gets that theme path.
-          </p>
         </div>
       </aside>
-      {message && (
-        <div
-          className={`notice ${error ? "notice-error" : ""}`}
-          role={error ? "alert" : "status"}
-        >
-          <span>{message}</span>
-          <button
-            className="icon-button"
-            aria-label="Dismiss message"
-            onClick={() => setMessage("")}
-          >
-            <Icon name="close" />
-          </button>
-        </div>
-      )}
     </div>
   );
 }
