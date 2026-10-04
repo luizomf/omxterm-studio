@@ -13,7 +13,7 @@ it("restores prior colors and discards redo after a different edit", () => {
   const edited = { ...first, colors: { ...first.colors, blue: "#123456" } };
   const history = changeTheme(createHistory(first), edited);
   const undone = undoTheme(history);
-  expect(undone.present.colors.blue).toBe("#88aaf2");
+  expect(undone.present.colors.blue).toBe(omtheme.colors.blue);
   expect(redoTheme(undone).present.colors.blue).toBe("#123456");
   const branch = changeTheme(undone, { ...first, name: "new branch" });
   expect(redoTheme(branch).present.name).toBe("new branch");

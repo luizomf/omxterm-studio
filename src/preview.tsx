@@ -368,7 +368,7 @@ const snippets = [
   ["Hello, terminal", "A little color for your command line"],
 ];
 
-function Snippets({ onDemo }: { onDemo: () => void }) {
+function Snippets() {
   const [query, setQuery] = useState("");
   const filtered = snippets.filter((entry) =>
     entry.join(" ").toLowerCase().includes(query.toLowerCase()),
@@ -385,15 +385,57 @@ function Snippets({ onDemo }: { onDemo: () => void }) {
       <ul>
         {filtered.map(([name, description]) => (
           <li key={name}>
-            <button onClick={onDemo}>
+            <div
+              className="snippet-preview"
+              title="Preview only — no command is run"
+            >
               <strong>{name}</strong>
               <span>{description}</span>
-            </button>
+            </div>
           </li>
         ))}
       </ul>
       {filtered.length === 0 && <p>No matching snippets</p>}
     </aside>
+  );
+}
+
+export type WorkspaceColumn = "samples" | "system";
+
+export function WorkspaceColumnControls({
+  hiddenColumn,
+  onChange,
+}: {
+  hiddenColumn: WorkspaceColumn | null;
+  onChange: (column: WorkspaceColumn | null) => void;
+}) {
+  return (
+    <div
+      className="workspace-column-controls"
+      role="group"
+      aria-label="Workspace columns"
+    >
+      {(
+        [
+          ["samples", "Color samples"],
+          ["system", "System demos"],
+        ] as const
+      ).map(([column, label]) => {
+        const hidden = hiddenColumn === column;
+        return (
+          <button
+            key={column}
+            aria-label={`${hidden ? "Restore" : "Minimize"} ${label.toLowerCase()} column`}
+            title={`${hidden ? "Restore" : "Minimize"} ${label.toLowerCase()} column`}
+            aria-expanded={!hidden}
+            disabled={hiddenColumn !== null && !hidden}
+            onClick={() => onChange(hidden ? null : column)}
+          >
+            <Icon name={hidden ? "plus" : "minus"} />
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -405,7 +447,7 @@ export function Preview({
   tabs,
   snippets: showSnippets,
   comparing,
-  onDemo,
+  hiddenColumn,
 }: {
   theme: TerminalTheme;
   config: Configuration;
@@ -414,11 +456,9 @@ export function Preview({
   tabs: boolean;
   snippets: boolean;
   comparing: boolean;
-  onDemo: () => void;
+  hiddenColumn: WorkspaceColumn | null;
 }) {
-  const [hiddenColumn, setHiddenColumn] = useState<"samples" | "system" | null>(
-    null,
-  );
+  const transparency = config.window?.transparency ?? 0;
   const appearance = resolvedAppearance(config);
   const variables = Object.fromEntries(
     Object.entries(theme.colors).map(([key, value]) => [
@@ -431,6 +471,10 @@ export function Preview({
     : '"FiraCode Nerd Font Mono", "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace';
   const style = {
     ...variables,
+    "--preview-background-opacity": 1 - transparency,
+    // CSS blur is illustrative; its radius is not the native compositor's radius.
+    "--preview-blur":
+      config.window?.blur && transparency > 0 ? "blur(4px)" : "none",
     "--preview-font": family,
     "--preview-size": `${appearance.size}px`,
     "--preview-line-height": appearance.lineHeight,
@@ -446,46 +490,19 @@ export function Preview({
       style={style}
       data-testid="terminal-preview"
     >
-      <div className="window-titlebar">
-        <span className="traffic-lights" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-        </span>
-        <span className="window-caption">
-          {comparing ? "REFERENCE" : theme.name}{" "}
-          <span className="titlebar-separator">/</span> appearance preview
-        </span>
-        {scene === "workspace" && (
-          <div
-            className="workspace-column-controls"
-            role="group"
-            aria-label="Workspace columns"
-          >
-            {(
-              [
-                ["samples", "Color samples"],
-                ["system", "System demos"],
-              ] as const
-            ).map(([column, label]) => {
-              const hidden = hiddenColumn === column;
-              return (
-                <button
-                  key={column}
-                  aria-label={`${hidden ? "Restore" : "Minimize"} ${label.toLowerCase()} column`}
-                  title={`${hidden ? "Restore" : "Minimize"} ${label.toLowerCase()} column`}
-                  aria-expanded={!hidden}
-                  disabled={hiddenColumn !== null && !hidden}
-                  onClick={() => setHiddenColumn(hidden ? null : column)}
-                >
-                  <Icon name={hidden ? "plus" : "minus"} />
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-      {tabs && (
+      {(config.window?.showTitleBar ?? true) && (
+        <div className="window-titlebar">
+          <span className="traffic-lights" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+          <span className="window-caption">
+            {comparing ? "REFERENCE" : theme.name}
+          </span>
+        </div>
+      )}
+      {tabs && (config.window?.showTabBar ?? true) && (
         <TabStrip
           className="preview-tabs"
           label="Preview scenes"
@@ -532,7 +549,7 @@ export function Preview({
             </C>
           </div>
         </div>
-        {showSnippets && <Snippets onDemo={onDemo} />}
+        {showSnippets && <Snippets />}
       </div>
     </div>
   );

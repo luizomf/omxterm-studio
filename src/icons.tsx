@@ -1,5 +1,8 @@
 const paths = {
   plus: "M5 12h14M12 5v14",
+  tabs: "M3 5h18v14H3zM3 10h18M9 5v5M15 5v5",
+  pause: "M8 5v14M16 5v14",
+  play: "m8 4 12 8-12 8z",
   minus: "M5 12h14",
   sliders: "M4 6h5m4 0h7M4 12h10m4 0h2M4 18h2m4 0h10M9 3v6m5 0v6M6 15v6",
   close: "m6 6 12 12M18 6 6 18",

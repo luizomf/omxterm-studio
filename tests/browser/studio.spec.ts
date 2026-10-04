@@ -24,12 +24,12 @@ test("edits, compares, and undoes colors without changing the overlay's own pale
   await expect(preview).toHaveCSS("--ansi-blue", "#123456");
   await expect(editor).toHaveCSS("background-color", editorColor);
   await page.getByRole("button", { name: "Compare", exact: true }).click();
-  await expect(preview).toHaveCSS("--ansi-blue", "#88aaf2");
+  await expect(preview).toHaveCSS("--ansi-blue", omtheme.colors.blue);
   await page
     .getByRole("button", { name: "Viewing reference · Return to edits" })
     .click();
   await page.getByRole("button", { name: "Undo theme edit" }).click();
-  await expect(preview).toHaveCSS("--ansi-blue", "#88aaf2");
+  await expect(preview).toHaveCSS("--ansi-blue", omtheme.colors.blue);
   await page.getByRole("button", { name: "Redo theme edit" }).click();
   await expect(preview).toHaveCSS("--ansi-blue", "#123456");
   await expect(
@@ -126,7 +126,10 @@ test("rejects malformed imports without losing the current theme", async ({
     buffer: Buffer.from('{"version":1,"colors":{}}'),
   });
   await expect(page.getByRole("alert")).toContainText("current work kept");
-  await expect(preview).toHaveCSS("--ansi-background", "#101014");
+  await expect(preview).toHaveCSS(
+    "--ansi-background",
+    omtheme.colors.background,
+  );
   await page.getByRole("button", { name: "Dismiss message" }).click();
   await page.getByLabel("Import theme JSON", { exact: true }).setInputFiles({
     name: "invalid-utf8.json",
@@ -155,9 +158,7 @@ test("imports configuration without fetching its path or dropping keybindings", 
       mimeType: "application/json",
       buffer: Buffer.from(JSON.stringify(config)),
     });
-  await expect(page.getByRole("status")).toContainText(
-    "theme.path was not opened",
-  );
+  await expect(page.getByRole("status")).toHaveCount(0);
   await page.getByRole("tab", { name: "Configuration", exact: true }).click();
   await expect(page.getByLabel("Installed font family")).toHaveValue(
     "Example Local Font",
@@ -289,7 +290,7 @@ test("starts without runtime errors, CSP violations, or third-party requests", a
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "OMXTerm Studio" }),
-  ).toBeVisible();
+  ).toHaveCount(1);
   expect(errors).toEqual([]);
   const origin = new URL(page.url()).origin;
   expect(requests.every((url) => url.startsWith(origin + "/"))).toBe(true);
