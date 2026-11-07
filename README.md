@@ -6,6 +6,12 @@ A static, browser-only theme and configuration workshop for [OMXTerm](https://gi
 
 **[Open the workshop →](https://luizomf.github.io/omxterm-studio/)**
 
+## Themes in OMXTerm
+
+[OMXTerm 0.25.0](https://github.com/luizomf/omxterm/releases/tag/v0.25.0) and newer include theme authoring in **Settings → Appearance**. Create, import or edit a theme there; **Save** or **Save copy** writes it, and **Use saved theme** applies it. See the [theme guide](https://github.com/luizomf/omxterm/blob/main/docs/configuration.md#author-a-theme).
+
+Studio remains available for older versions and browser-only use, including its animated preview, undo/reference comparison and paired ZIP. Its configuration and theme validators target an older desktop schema and may reject newer fields. Before moving, download **Theme JSON** and any needed **Config JSON**; apply pending configuration edits first. Remembered drafts contain validated, applied documents only, in the same browser and profile—not unfinished text or unapplied edits.
+
 ## The workshop
 
 - Edit the 21 theme colors and name. New visits start with the current desktop **OMTheme**; **Dark Ice** remains an alternative. Saved drafts and imported palettes are never replaced by a preset update.
@@ -91,6 +97,6 @@ Set `STUDIO_BASE_URL` to test a different deployment. CI installs Playwright Chr
 
 ## Contract and license
 
-The workshop targets **OMXTerm configuration/theme schema v1**, inspected at desktop commit [`9d7b01e`](https://github.com/luizomf/omxterm/commit/9d7b01eff21ffb64cbd03ba2d426df8ef1618ce8) (0.17.1-dev.0 baseline; latest published release v0.17.0). The OMTheme palette is separately synchronized with desktop commit [`f2b6c7e`](https://github.com/luizomf/omxterm/commit/f2b6c7e745ebda401c6ae1e6fe1ad685f652c02a). See [the product contract](docs/spec.md) and [contract provenance](docs/contract-provenance.md) before changing validation or appearance rules.
+The workshop targets **OMXTerm configuration/theme schema v1**, inspected at desktop commit [`9d7b01e`](https://github.com/luizomf/omxterm/commit/9d7b01eff21ffb64cbd03ba2d426df8ef1618ce8) (0.17.1-dev.0 baseline; v0.17.0 was the latest release when inspected). The OMTheme palette is separately synchronized with desktop commit [`f2b6c7e`](https://github.com/luizomf/omxterm/commit/f2b6c7e745ebda401c6ae1e6fe1ad685f652c02a). See [the product contract](docs/spec.md) and [contract provenance](docs/contract-provenance.md) before changing validation or appearance rules.
 
 MIT. Original palettes only; no redistributed third-party theme catalog.

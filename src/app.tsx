@@ -85,6 +85,7 @@ export function App() {
   const [pendingConfigJson, setPendingConfigJson] = useState(false);
   const [pendingShortcuts, setPendingShortcuts] = useState(false);
   const [message, setMessage] = useState(initial.error);
+  const [showMigration, setShowMigration] = useState(true);
   const [busy, setBusy] = useState(false);
   const [dirty, setDirty] = useState(false);
   const importId = useRef(0);
@@ -406,6 +407,57 @@ export function App() {
           onChange={setSection}
         />
         <div className="editor-scroll">
+          {showMigration && (
+            <section
+              className="migration-notice"
+              aria-labelledby="migration-title"
+            >
+              <span className="migration-kicker">A NEW HOME FOR THEMES</span>
+              <h2 id="migration-title">
+                Your theme workshop is now in OMXTerm
+              </h2>
+              <button
+                className="migration-continue"
+                onClick={() => {
+                  setShowMigration(false);
+                  panelHeading.current?.focus();
+                }}
+              >
+                Continue in Studio
+              </button>
+              <p>
+                In OMXTerm 0.25.0 or newer, open{" "}
+                <strong>Settings → Appearance</strong> to create, import or edit
+                a theme. <strong>Save</strong> or <strong>Save copy</strong>{" "}
+                writes it; choose <strong>Use saved theme</strong> to apply it.
+              </p>
+              <p>
+                Before moving, download Theme JSON and any needed Config JSON
+                below. Remembered drafts contain validated, applied documents in
+                this browser and profile—not unfinished text or unapplied edits.
+              </p>
+              <div className="migration-links">
+                <a
+                  href="https://github.com/luizomf/omxterm/blob/main/docs/configuration.md#author-a-theme"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Theme guide ↗
+                </a>
+                <a
+                  href="https://github.com/luizomf/omxterm/releases/tag/v0.25.0"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Get OMXTerm 0.25.0 ↗
+                </a>
+              </div>
+              <p className="migration-legacy">
+                Studio remains available, including its animated preview,
+                comparison and paired ZIP.
+              </p>
+            </section>
+          )}
           <div hidden={section !== "theme"}>
             <div className="history-toolbar">
               <button
@@ -607,8 +659,8 @@ export function App() {
             </p>
             <p>
               Configuration schema v1, checked against OMXTerm commit 9d7b01e
-              (0.17.1-dev.0; latest published release 0.17.0). Always keep a
-              backup before applying files in the application.
+              (0.17.1-dev.0; 0.17.0 was the latest release when inspected).
+              Always keep a backup before applying files in the application.
             </p>
             <a
               href="https://github.com/luizomf/omxterm-studio"

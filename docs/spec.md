@@ -4,6 +4,8 @@
 
 A static, browser-only theme and configuration editor for OMXTerm. The theme is the primary workflow; configuration editing is equally available. The site is separate from the desktop application and the OMXTerm Web SSH broker.
 
+A dismissible notice in the editor directs users to native theme authoring in OMXTerm 0.25.0 and newer, explains Save versus Use saved theme, links the release and theme guide, and gives brief download and draft-recovery guidance. Continue in Studio dismisses it for the current page without changing editor state or stored drafts. The existing editor, downloads and origin remain available; native authoring is not presented as feature-for-feature parity.
+
 ## Preview
 
 A large DOM/CSS simulation uses fictional text, fastfetch, htop, ANSI-styled tmux status/dividers, an OMXTerm tab strip, and a snippets sidebar. It does not run commands or use the Restty rendering engine. Normal, bold, dim, background colors, cursor, and selection samples are visible. Bold does not switch ANSI slots. Font rasterization, dim rendering, cell layout, and operating-system chrome can differ from the application.
@@ -18,7 +20,7 @@ The non-modal editor floats on the left or right without resizing, dimming, or b
 
 - Original `omtheme` and `omtheme-darkice` presets; no third-party theme catalog. Fresh visits start with desktop OMTheme, synchronized with desktop commit `f2b6c7e`. Dark Ice stays a separate companion palette. Preset updates never overwrite remembered or imported work.
 - All 21 theme colors, strict `#RRGGBB`, and a printable name of 1–64 Unicode code points.
-- Configuration/theme schema version 1, targeting desktop commit `9d7b01e` (0.17.1-dev.0 baseline; latest published release v0.17.0). Supported optional configuration fields are preserved, including keybindings. Unknown fields are rejected, not silently removed.
+- Configuration/theme schema version 1, targeting desktop commit `9d7b01e` (0.17.1-dev.0 baseline; v0.17.0 was the latest release when inspected). Supported optional configuration fields are preserved, including keybindings. Unknown fields are rejected, not silently removed.
 - Configuration controls cover font family/size/line-height/ligatures, per-side padding, scrollback, close confirmation, logging, Option key behavior, Windows shell, keyboard shortcuts, and a JSON editor for the entire supported document including `theme.path`.
 - The collapsible **Window & background** group covers all five window fields. `showTitleBar` and `showTabBar` default to true; `alwaysOnTop` and `blur` default to false; `transparency` defaults to 0 and accepts finite fractions from 0 through 1. Wrong types, unknown keys and out-of-range values are rejected, never clamped. Editing one field preserves every sibling and leaves omitted defaults implicit; merely focusing a numeric control does not add a default to JSON.
 - Window settings update the simulation except always-on-top, which is explicitly export-only. Guidance distinguishes simulated browser effects from native behavior, and live background effects from new-window chrome/always-on-top defaults, the two-tab minimum for a visible tab bar, positive transparency needed for blur, and native platform limitations. In particular, Windows without blur stays opaque; Acrylic requires Windows 11 22H2 or later and can still fall back to opaque. Linux blur is best effort on X11, not native Wayland. macOS prefers direct blur with HUD fallback. No native visual result is certified by Studio.

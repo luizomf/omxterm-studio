@@ -125,6 +125,16 @@ test("switching sections preserves palette selection and unapplied configuration
     page.getByRole("textbox", { name: "Theme name", exact: true }),
   ).toHaveCount(0);
   await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("button", { name: "Continue in Studio" }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Theme guide" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("link", { name: "Get OMXTerm 0.25.0" }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
   await expect(page.getByLabel("Target platform")).toBeFocused();
   await expect(page.getByTestId("terminal-preview")).toHaveCSS(
     "--preview-size",
